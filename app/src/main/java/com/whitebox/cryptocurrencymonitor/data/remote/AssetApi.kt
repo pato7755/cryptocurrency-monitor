@@ -4,10 +4,9 @@ import com.whitebox.cryptocurrencymonitor.common.Constants
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.AssetDto
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.AssetIconDto
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.ExchangeRateDto
-import com.whitebox.cryptocurrencymonitor.domain.model.ExchangeRate
 import retrofit2.http.GET
 
-interface CoinApi {
+interface AssetApi {
 
     @GET("assets")
     fun getAssets(): List<AssetDto>
