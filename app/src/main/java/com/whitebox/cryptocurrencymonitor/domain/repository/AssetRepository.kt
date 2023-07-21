@@ -10,7 +10,7 @@ interface AssetRepository {
 
     suspend fun getAsset(assetId: String): Asset
 
-    suspend fun getAssetIcons(assetId: String): AssetIcon
+    suspend fun getAssetIcons(size: String): List<AssetIcon>
 
     suspend fun getExchangeRate(assetId: String): ExchangeRate
 
