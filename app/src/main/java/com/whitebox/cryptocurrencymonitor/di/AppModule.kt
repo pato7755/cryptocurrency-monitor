@@ -1,9 +1,13 @@
 package com.whitebox.cryptocurrencymonitor.di
 
+import android.app.Application
+import androidx.room.Room
 import com.whitebox.cryptocurrencymonitor.common.Constants.BASE_URL
+import com.whitebox.cryptocurrencymonitor.data.local.CryptocurrencyDao
+import com.whitebox.cryptocurrencymonitor.data.local.CryptocurrencyDatabase
 import com.whitebox.cryptocurrencymonitor.data.remote.AssetApi
-import com.whitebox.cryptocurrencymonitor.data.repository.AssetRepositoryImpl
-import com.whitebox.cryptocurrencymonitor.domain.repository.AssetRepository
+import com.whitebox.cryptocurrencymonitor.data.repository.CryptocurrencyRepositoryImpl
+import com.whitebox.cryptocurrencymonitor.domain.repository.CryptocurrencyRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +22,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAssetRepository(api: AssetApi): AssetRepository = AssetRepositoryImpl(api)
+    fun provideCryptocurrencyRepository(
+        api: AssetApi,
+        dao: CryptocurrencyDao
+    ): CryptocurrencyRepository = CryptocurrencyRepositoryImpl(api, dao)
 
     @Provides
     @Singleton
@@ -27,5 +34,13 @@ object AppModule {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(AssetApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCryptocurrencyDatabase(app: Application) = Room.databaseBuilder(
+        app,
+        CryptocurrencyDatabase::class.java,
+        "cryptocurrency_database"
+    ).build()
 
 }
