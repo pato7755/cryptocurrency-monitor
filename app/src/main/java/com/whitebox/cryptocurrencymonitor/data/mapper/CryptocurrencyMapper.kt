@@ -1,5 +1,6 @@
 package com.whitebox.cryptocurrencymonitor.data.mapper
 
+import com.whitebox.cryptocurrencymonitor.data.local.entity.AssetEntity
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.AssetDto
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.AssetIconDto
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.ExchangeRateDto
@@ -10,7 +11,22 @@ import com.whitebox.cryptocurrencymonitor.domain.model.ExchangeRate
 fun AssetDto.toDomainAsset(): Asset {
     return Asset(
         assetId = assetId,
-        idIcon = idIcon,
+        name = name,
+        typeIsCrypto = typeIsCrypto
+    )
+}
+
+fun AssetEntity.toDomainAsset(): Asset {
+    return Asset(
+        assetId = assetId,
+        name = name,
+        typeIsCrypto = typeIsCrypto
+    )
+}
+
+fun Asset.toLocalAsset(): AssetEntity {
+    return AssetEntity(
+        assetId = assetId,
         name = name,
         typeIsCrypto = typeIsCrypto
     )
