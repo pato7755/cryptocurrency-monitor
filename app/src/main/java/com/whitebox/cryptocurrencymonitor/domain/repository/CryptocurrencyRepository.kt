@@ -10,10 +10,10 @@ interface CryptocurrencyRepository {
 
     suspend fun getAssets(): Flow<WorkResult<List<Asset>>>
 
-    suspend fun getAsset(assetId: String): Asset
+    suspend fun getAsset(assetId: String): Flow<WorkResult<Asset?>>
 
-    suspend fun getAssetIcons(size: String): List<AssetIcon>
+    suspend fun getAssetIcons(size: String): Flow<WorkResult<List<AssetIcon?>>>
 
-    suspend fun getExchangeRate(assetId: String): ExchangeRate
+    suspend fun getExchangeRate(assetId: String): Flow<WorkResult<ExchangeRate>>
 
 }
