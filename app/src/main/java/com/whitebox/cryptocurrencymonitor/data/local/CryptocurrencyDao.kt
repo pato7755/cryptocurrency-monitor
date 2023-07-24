@@ -1,10 +1,7 @@
 package com.whitebox.cryptocurrencymonitor.data.local
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
 import androidx.room.Upsert
 import com.whitebox.cryptocurrencymonitor.data.local.entity.AssetEntity
 import com.whitebox.cryptocurrencymonitor.data.local.entity.ExchangeRateEntity
@@ -30,16 +27,13 @@ interface CryptocurrencyDao {
     @Query("SELECT * FROM Asset")
     suspend fun getAllAssets(): List<AssetEntity>
 
-    @Update
-    fun updateAsset(asset: AssetEntity)
+    @Query("SELECT URL FROM Asset WHERE asset_id = :assetId")
+    fun getAssetIconUrl(assetId: String): String?
 
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertExchangeRate(exchangeRate: ExchangeRateEntity)
+    @Upsert
+    suspend fun upsertExchangeRate(exchangeRate: ExchangeRateEntity)
 
     @Query("SELECT * FROM exchange_rate WHERE asset_id_base = :assetIdBase")
     suspend fun getExchangeRate(assetIdBase: String): ExchangeRateEntity?
-
-    @Update
-    suspend fun updateExchangeRate(exchangeRate: ExchangeRateEntity)
 }
