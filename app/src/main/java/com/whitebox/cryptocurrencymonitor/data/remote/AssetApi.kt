@@ -5,19 +5,20 @@ import com.whitebox.cryptocurrencymonitor.data.remote.dto.AssetDto
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.AssetIconDto
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.ExchangeRateDto
 import retrofit2.http.GET
+import retrofit2.http.Path
 
 interface AssetApi {
 
     @GET("assets")
-    fun getAssets(): List<AssetDto>
+    suspend fun getAssets(): List<AssetDto>
 
-    @GET("assets/{asset_id}")
-    fun getAssetDetails(assetId: String): AssetDto
+    @GET("assets/{assetId}")
+    suspend fun getAssetDetails(@Path("assetId") assetId: String): AssetDto
 
     @GET("assets/icons/{size}")
-    fun getAssetIcons(size: String): List<AssetIconDto>
+    suspend fun getAssetIcons(@Path("size") size: String): List<AssetIconDto>
 
     @GET("exchangerate/{baseId}/${Constants.EUR_ASSET_CODE}")
-    fun getExchangeRate(baseId: String): ExchangeRateDto
+    suspend fun getExchangeRate(@Path("baseId") baseId: String): ExchangeRateDto
 
 }
