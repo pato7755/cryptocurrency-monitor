@@ -1,6 +1,5 @@
 package com.whitebox.cryptocurrencymonitor.data.local.entity
 
-import androidx.annotation.ColorInt
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -14,18 +13,8 @@ data class AssetEntity(
     val typeIsCrypto: Int,
     @ColumnInfo(name = "url")
     val iconUrl: String? = null,
-    @ColumnInfo(name = "is_bookmarked")
-    val isBookmarked: Boolean = false,
+    @ColumnInfo(name = "is_favourite")
+    val isFavourite: Boolean = false,
     @PrimaryKey val id: Int? = null
 )
 
-
-
-
-//fun AssetEntity.toAsset(): Asset {
-//    return Asset(
-//        assetId = assetId,
-//        name = name,
-//        typeIsCrypto = typeIsCrypto
-//    )
-//}
