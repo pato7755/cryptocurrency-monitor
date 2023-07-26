@@ -12,13 +12,13 @@ interface CryptocurrencyDao {
     @Upsert
     fun upsertAssets(assets: List<AssetEntity>)
 
-    @Query("UPDATE Asset SET is_bookmarked = 1 WHERE asset_id = :assetId")
-    fun addFavouriteAsset(assetId: AssetEntity): Long
+    @Query("UPDATE Asset SET is_favourite = 1 WHERE asset_id = :assetId")
+    fun addFavouriteAsset(assetId: String)
 
-    @Query("UPDATE Asset SET is_bookmarked = 0 WHERE asset_id = :assetId")
-    fun removeFavouriteAsset(assetId: String): Int
+    @Query("UPDATE Asset SET is_favourite = 0 WHERE asset_id = :assetId")
+    fun removeFavouriteAsset(assetId: String)
 
-    @Query("SELECT * FROM Asset WHERE is_bookmarked = 1")
+    @Query("SELECT * FROM Asset WHERE is_favourite = 1")
     suspend fun getFavouriteAssets(): List<AssetEntity>
 
     @Query("SELECT * FROM Asset WHERE asset_id = :assetId")
