@@ -118,4 +118,33 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getFavouriteAssets(): Flow<WorkResult<List<Asset>>> = flow {
+        emit(WorkResult.Loading())
+        try {
+            val localAssets = dao.getAllAssets().filter { it.isFavourite }
+            emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
+        } catch (e: HttpException) {
+            emit(
+                WorkResult.Error(
+                    message = e.message ?: "An error occurred while fetching exchange rate"
+                )
+            )
+        } catch (e: IOException) {
+            emit(
+                WorkResult.Error(
+                    message = e.message ?: "An error occurred while fetching exchange rate"
+                )
+            )
+        }
+
+    }
+
+    override suspend fun addFavouriteAsset(assetId: String) {
+        dao.addFavouriteAsset(assetId = assetId)
+    }
+
+    override suspend fun removeFavouriteAsset(assetId: String) {
+        dao.removeFavouriteAsset(assetId = assetId)
+    }
+
 }

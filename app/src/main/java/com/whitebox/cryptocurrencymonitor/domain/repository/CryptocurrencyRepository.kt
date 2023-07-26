@@ -16,4 +16,10 @@ interface CryptocurrencyRepository {
 
     suspend fun getExchangeRate(assetId: String): Flow<WorkResult<ExchangeRate>>
 
+    suspend fun getFavouriteAssets(): Flow<WorkResult<List<Asset>>>
+
+    suspend fun addFavouriteAsset(assetId: String)
+
+    suspend fun removeFavouriteAsset(assetId: String)
+
 }
