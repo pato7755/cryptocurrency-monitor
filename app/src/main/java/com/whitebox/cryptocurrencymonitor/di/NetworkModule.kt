@@ -7,6 +7,8 @@ import com.whitebox.cryptocurrencymonitor.BuildConfig
 import com.whitebox.cryptocurrencymonitor.CryptocurrencyApp
 import com.whitebox.cryptocurrencymonitor.common.Constants
 import com.whitebox.cryptocurrencymonitor.data.remote.AssetApi
+import com.whitebox.cryptocurrencymonitor.util.NetworkConnectivityService
+import com.whitebox.cryptocurrencymonitor.util.NetworkConnectivityServiceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -83,6 +85,14 @@ object NetworkModule {
             requestBuilder.addHeader("X-CoinAPI-Key", BuildConfig.API_KEY)
             it.proceed(requestBuilder.build())
         }
+    }
+
+    @Provides
+    @Singleton
+    fun provideNetworkConnectivityService(
+        @ApplicationContext context: Context,
+    ): NetworkConnectivityService {
+        return NetworkConnectivityServiceImpl(context = context)
     }
 
 //    @Provides

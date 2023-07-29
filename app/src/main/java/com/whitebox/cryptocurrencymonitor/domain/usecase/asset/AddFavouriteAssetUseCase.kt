@@ -6,5 +6,6 @@ import javax.inject.Inject
 class AddFavouriteAssetUseCase @Inject constructor(
     private val repository: CryptocurrencyRepository
 ) {
-    suspend operator fun invoke(assetId: String) = repository.addFavouriteAsset(assetId)
+    suspend operator fun invoke(assetId: String) =
+        repository.addFavouriteAsset(assetId)
 }
