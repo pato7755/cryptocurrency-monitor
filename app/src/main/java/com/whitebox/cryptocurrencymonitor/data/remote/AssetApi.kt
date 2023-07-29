@@ -13,7 +13,7 @@ interface AssetApi {
     suspend fun getAssets(): List<AssetDto>
 
     @GET("assets/{assetId}")
-    suspend fun getAssetDetails(@Path("assetId") assetId: String): AssetDto
+    suspend fun getAssetDetails(@Path("assetId") assetId: String): List<AssetDto>
 
     @GET("assets/icons/{size}")
     suspend fun getAssetIcons(@Path("size") size: String): List<AssetIconDto>
