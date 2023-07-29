@@ -11,4 +11,9 @@ object Constants {
         LARGE("128")
     }
 
+    enum class YesOrNo(val value: Int) {
+        YES(1),
+        NO(0)
+    }
+
 }
