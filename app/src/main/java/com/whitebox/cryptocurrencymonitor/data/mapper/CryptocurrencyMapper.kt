@@ -13,7 +13,8 @@ fun AssetDto.toDomainAsset(): Asset {
     return Asset(
         assetId = assetId,
         name = name,
-        typeIsCrypto = typeIsCrypto
+        typeIsCrypto = typeIsCrypto,
+        priceUsd = priceUsd.toString()
     )
 }
 
@@ -21,7 +22,9 @@ fun AssetEntity.toDomainAsset(): Asset {
     return Asset(
         assetId = assetId,
         name = name,
-        typeIsCrypto = typeIsCrypto
+        typeIsCrypto = typeIsCrypto,
+        isFavourite = isFavourite,
+        priceUsd = priceUsd
     )
 }
 
@@ -29,7 +32,9 @@ fun Asset.toLocalAsset(): AssetEntity {
     return AssetEntity(
         assetId = assetId,
         name = name,
-        typeIsCrypto = typeIsCrypto
+        typeIsCrypto = typeIsCrypto,
+        isFavourite = isFavourite,
+        priceUsd = priceUsd
     )
 }
 
