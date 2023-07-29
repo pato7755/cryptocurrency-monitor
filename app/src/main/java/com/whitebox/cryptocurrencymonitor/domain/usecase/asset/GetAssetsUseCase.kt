@@ -9,7 +9,6 @@ import javax.inject.Inject
 class GetAssetsUseCase @Inject constructor(
     private val repository: CryptocurrencyRepository
 ) {
-    suspend operator fun invoke(): Flow<WorkResult<List<Asset>>> {
-        return repository.getAssets()
-    }
+    suspend operator fun invoke(fetchFromRemote: Boolean): Flow<WorkResult<List<Asset>>> =
+        repository.getAssets(fetchFromRemote = fetchFromRemote)
 }
