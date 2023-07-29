@@ -1,6 +1,8 @@
 package com.whitebox.cryptocurrencymonitor.data.local
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import com.whitebox.cryptocurrencymonitor.data.local.entity.AssetEntity
@@ -9,14 +11,14 @@ import com.whitebox.cryptocurrencymonitor.data.local.entity.ExchangeRateEntity
 @Dao
 interface CryptocurrencyDao {
 
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun upsertAssets(assets: List<AssetEntity>)
 
     @Query("UPDATE Asset SET is_favourite = 1 WHERE asset_id = :assetId")
     fun addFavouriteAsset(assetId: String)
 
     @Query("UPDATE Asset SET is_favourite = 0 WHERE asset_id = :assetId")
-    fun removeFavouriteAsset(assetId: String)
+    fun removeFavouriteAsset(assetId: String): Int
 
     @Query("SELECT * FROM Asset WHERE is_favourite = 1")
     suspend fun getFavouriteAssets(): List<AssetEntity>

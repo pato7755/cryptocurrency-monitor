@@ -8,18 +8,26 @@ import kotlinx.coroutines.flow.Flow
 
 interface CryptocurrencyRepository {
 
-    suspend fun getAssets(): Flow<WorkResult<List<Asset>>>
+    suspend fun getAssets(fetchFromRemote: Boolean): Flow<WorkResult<List<Asset>>>
 
-    suspend fun getAsset(assetId: String): Flow<WorkResult<Asset?>>
+    suspend fun getAsset(
+        assetId: String,
+        fetchFromRemote: Boolean
+    ): Flow<WorkResult<Asset?>>
 
-    suspend fun getAssetIcons(size: String): Flow<WorkResult<List<AssetIcon?>>>
+    suspend fun getAssetIcons(
+        size: String
+    ): Flow<WorkResult<List<AssetIcon?>>>
 
-    suspend fun getExchangeRate(assetId: String): Flow<WorkResult<ExchangeRate>>
+    suspend fun getExchangeRate(
+        assetId: String,
+        fetchFromRemote: Boolean
+    ): Flow<WorkResult<ExchangeRate>>
 
     suspend fun getFavouriteAssets(): Flow<WorkResult<List<Asset>>>
 
-    suspend fun addFavouriteAsset(assetId: String)
+    suspend fun addFavouriteAsset(assetId: String): Boolean
 
-    suspend fun removeFavouriteAsset(assetId: String)
+    suspend fun removeFavouriteAsset(assetId: String): Boolean
 
 }
