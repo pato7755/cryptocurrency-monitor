@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.whitebox.cryptocurrencymonitor.ui.assets.AssetScreen
+import com.whitebox.cryptocurrencymonitor.ui.MainScreen
 import com.whitebox.cryptocurrencymonitor.ui.theme.CryptocurrencyMonitorTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AssetScreen()
+                    MainScreen()
                 }
             }
         }
@@ -35,6 +35,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     CryptocurrencyMonitorTheme {
-        AssetScreen()
+        MainScreen()
     }
 }
