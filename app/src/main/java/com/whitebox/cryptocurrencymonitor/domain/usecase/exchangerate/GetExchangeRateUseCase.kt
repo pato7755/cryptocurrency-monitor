@@ -9,6 +9,9 @@ import javax.inject.Inject
 class GetExchangeRateUseCase @Inject constructor(
     private val repository: CryptocurrencyRepository
 ) {
-    suspend operator fun invoke(baseAssetId: String): Flow<WorkResult<ExchangeRate>> =
-        repository.getExchangeRate(baseAssetId)
+    suspend operator fun invoke(
+        baseAssetId: String,
+        fetchFromRemote: Boolean
+    ): Flow<WorkResult<ExchangeRate>> =
+        repository.getExchangeRate(assetId = baseAssetId, fetchFromRemote = fetchFromRemote)
 }

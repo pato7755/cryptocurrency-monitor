@@ -6,5 +6,6 @@ import javax.inject.Inject
 class RemoveFavouriteAssetUseCase @Inject constructor(
     private val repository: CryptocurrencyRepository
 ) {
-    suspend operator fun invoke(assetId: String) = repository.removeFavouriteAsset(assetId)
+    suspend operator fun invoke(assetId: String) =
+        repository.removeFavouriteAsset(assetId)
 }
