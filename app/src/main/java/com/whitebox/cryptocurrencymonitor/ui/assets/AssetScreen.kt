@@ -25,12 +25,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -63,15 +67,7 @@ fun AssetScreen(
 //    val favouriteAssetState by viewModel.favouriteAssetState.collectAsStateWithLifecycle()
 //    var isFavourite by remember { mutableStateOf(false) }
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "View Cryptocurrencies",
-                    )
-                }
-            )
-        },
+        topBar = { AppBar() },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
@@ -213,6 +209,47 @@ fun AssetItem(
         }
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBar() {
+    TopAppBar(
+        title = { Text(text = "View Cryptocurrencies", color = Color.White) },
+        modifier = Modifier.background(MaterialTheme.colorScheme.primary),
+        colors = TopAppBarDefaults.smallTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White,
+            actionIconContentColor = Color.White
+        ),
+        actions = {
+            IconButton(
+                onClick = { /*TODO*/ },
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(30.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Favourite",
+                    tint = Color.White
+                )
+            }
+            IconButton(
+                onClick = { /*TODO*/ },
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(30.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = Color.White
+                )
+            }
+        }
+    )
 }
 
 
