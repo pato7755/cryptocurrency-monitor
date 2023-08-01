@@ -166,7 +166,7 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
     override suspend fun getFavouriteAssets(): Flow<WorkResult<List<Asset>>> = flow {
         emit(WorkResult.Loading())
         try {
-            val localAssets = dao.getAllAssets().filter { it.isFavourite ?: false }
+            val localAssets = dao.getAllAssets().filter { it.isFavourite }
             emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
         } catch (e: HttpException) {
             emit(

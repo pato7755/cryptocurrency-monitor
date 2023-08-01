@@ -1,6 +1,5 @@
 package com.whitebox.cryptocurrencymonitor.ui.assets
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,8 +65,6 @@ fun AssetScreen(
     onAssetClick: (String) -> Unit,
 ) {
     val assetState by viewModel.assetState.collectAsStateWithLifecycle()
-//    val favouriteAssetState by viewModel.favouriteAssetState.collectAsStateWithLifecycle()
-//    var isFavourite by remember { mutableStateOf(false) }
     Scaffold(
         topBar = { AppBar() },
         modifier = Modifier.fillMaxSize()
@@ -167,9 +165,7 @@ fun AssetItem(
     onAssetClick: (String) -> Unit,
     viewModel: AssetsViewModel = hiltViewModel()
 ) {
-    val assetState by viewModel.assetState.collectAsStateWithLifecycle()
-    val favouriteAssetState by viewModel.favouriteAssetState.collectAsStateWithLifecycle()
-    var isFavourite by remember { mutableStateOf(asset.isFavourite) }
+    var isFavourite by rememberSaveable { mutableStateOf(asset.isFavourite) }
 
     Box(
         modifier = Modifier
@@ -223,7 +219,6 @@ fun AssetItem(
             }
 
             Spacer(Modifier.weight(1f))
-            Log.d("AssetItem", "${asset.assetId} - ${assetState.isFavourite}")
 
             Icon(
                 imageVector =
@@ -232,23 +227,17 @@ fun AssetItem(
                 } else {
                     Icons.Default.FavoriteBorder
                 },
-//                tint = if (favouriteAssetState.isFavourite) {
-//                    Color.Red
-//                } else {
-//                    Color.Gray
-//                },
                 contentDescription = "Favourite",
                 modifier = Modifier
                     .size(30.dp)
                     .clickable {
-                        if (assetState.isFavourite) {
-                            viewModel.removeFavouriteAsset(asset.assetId)
-                        } else {
+                        isFavourite.let { isFavourite = viewModel.toggleFavourite(it) }
+                        if (isFavourite) {
                             viewModel.addFavouriteAsset(asset.assetId)
+                        } else {
+                            viewModel.removeFavouriteAsset(asset.assetId)
                         }
-                        isFavourite = !isFavourite
                     }
-
             )
         }
     }
@@ -257,7 +246,10 @@ fun AssetItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppBar() {
+fun AppBar(
+    viewModel: AssetsViewModel = hiltViewModel(),
+) {
+    var isTopBarFavouriteSelected by remember { mutableStateOf(false) }
     TopAppBar(
         title = { Text(text = "View Cryptocurrencies", color = Color.White) },
         modifier = Modifier.background(MaterialTheme.colorScheme.primary),
@@ -269,13 +261,23 @@ fun AppBar() {
         ),
         actions = {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    isTopBarFavouriteSelected = !isTopBarFavouriteSelected
+                    if (isTopBarFavouriteSelected)
+                        viewModel.getFavouriteAssets()
+                    else
+                        viewModel.getAssetsAndIcons()
+                },
                 modifier = Modifier
                     .padding(end = 16.dp)
                     .size(30.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Favorite,
+                    imageVector = if (isTopBarFavouriteSelected) {
+                        Icons.Default.Favorite
+                    } else {
+                        Icons.Default.FavoriteBorder
+                    },
                     contentDescription = "Favourite",
                     tint = Color.White
                 )

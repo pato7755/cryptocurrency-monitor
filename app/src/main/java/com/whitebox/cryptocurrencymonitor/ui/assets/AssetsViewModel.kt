@@ -70,7 +70,7 @@ class AssetsViewModel @Inject constructor(
         }
     }
 
-    private fun getAssetsAndIcons(fetchFromRemote: Boolean = true) {
+    fun getAssetsAndIcons(fetchFromRemote: Boolean = true) {
         viewModelScope.launch(Dispatchers.IO) {
             val assetsResult = async {
                 getAssetsUseCase.invoke(fetchFromRemote)
@@ -224,41 +224,33 @@ class AssetsViewModel @Inject constructor(
             getFavouriteAssetsUseCase.invoke().collectLatest { result ->
                 when (result) {
                     is WorkResult.Loading -> {
-                        _favouriteAssetState.update { state ->
+                        _assetState.update { state ->
                             state.copy(isFavourite = true)
                         }
                     }
 
                     is WorkResult.Success -> {
-                        _favouriteAssetState.update { state ->
+                        _assetState.update { state ->
                             state.copy(
                                 isFavourite = false,
-//                                assets = result.data ?: emptyList()
+                                assets = result.data ?: emptyList()
                             )
                         }
+                        // Get asset icons
+                        getAssetIcons()
                     }
 
                     is WorkResult.Error -> {
-                        _favouriteAssetState.update { state ->
+                        _assetState.update { state ->
                             state.copy(
-//                                isLoading = false,
-//                                error = result.message
+                                isLoading = false,
+                                error = result.message
                             )
                         }
                     }
                 }
             }
         }
-    }
-
-    fun updateFavouriteAssetState(assetId: String) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            _favouriteAssetState.update { state ->
-//                state.copy(
-//                    isFavourite = getFavouriteAssetsUseCase.invoke(assetId = assetId)
-//                )
-//            }
-//        }
     }
 
     fun addFavouriteAsset(assetId: String) {
@@ -273,6 +265,8 @@ class AssetsViewModel @Inject constructor(
         }
     }
 
+    fun toggleFavourite(isFavourite: Boolean) = !isFavourite
+
     fun removeFavouriteAsset(assetId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             if (removeFavouriteAssetUseCase.invoke(assetId = assetId)) {
@@ -284,4 +278,5 @@ class AssetsViewModel @Inject constructor(
             }
         }
     }
+
 }
