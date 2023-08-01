@@ -33,7 +33,7 @@ interface CryptocurrencyDao {
     fun getAssetIconUrl(assetId: String): String?
 
 
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun upsertExchangeRate(exchangeRate: ExchangeRateEntity)
 
     @Query("SELECT * FROM exchange_rate WHERE asset_id_base = :assetIdBase")
