@@ -10,11 +10,15 @@ import com.whitebox.cryptocurrencymonitor.domain.usecase.asset.GetAssetIconsUseC
 import com.whitebox.cryptocurrencymonitor.domain.usecase.asset.GetAssetsUseCase
 import com.whitebox.cryptocurrencymonitor.domain.usecase.asset.GetFavouriteAssetsUseCase
 import com.whitebox.cryptocurrencymonitor.domain.usecase.asset.RemoveFavouriteAssetUseCase
+import com.whitebox.cryptocurrencymonitor.domain.usecase.asset.SearchUseCase
+import com.whitebox.cryptocurrencymonitor.ui.common.SearchBarState
 import com.whitebox.cryptocurrencymonitor.util.NetworkConnectivityService
 import com.whitebox.cryptocurrencymonitor.util.NetworkStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +36,7 @@ class AssetsViewModel @Inject constructor(
     private val getFavouriteAssetsUseCase: GetFavouriteAssetsUseCase,
     private val addFavouriteAssetUseCase: AddFavouriteAssetUseCase,
     private val removeFavouriteAssetUseCase: RemoveFavouriteAssetUseCase,
+    private val searchUseCase: SearchUseCase,
     networkConnectivityService: NetworkConnectivityService
 ) : ViewModel() {
     private val _assetState = MutableStateFlow(AssetState())
@@ -42,11 +47,17 @@ class AssetsViewModel @Inject constructor(
     private val _favouriteAssetState = MutableStateFlow(FavouriteAssetState())
     val favouriteAssetState = _favouriteAssetState.asStateFlow()
 
-    private val _networkConnectivityState: StateFlow<NetworkStatus> = networkConnectivityService.networkStatus.stateIn(
-        initialValue = NetworkStatus.Unknown,
-        scope = viewModelScope,
-        started = WhileSubscribed(3000)
-    )
+    private val _searchBarState = MutableStateFlow(SearchBarState())
+    val searchBarState = _searchBarState.asStateFlow()
+
+    var searchJob: Job? = null
+
+    private val _networkConnectivityState: StateFlow<NetworkStatus> =
+        networkConnectivityService.networkStatus.stateIn(
+            initialValue = NetworkStatus.Unknown,
+            scope = viewModelScope,
+            started = WhileSubscribed(3000)
+        )
     val networkConnectivityState = _networkConnectivityState
 
     init {
@@ -63,10 +74,6 @@ class AssetsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val assetsResult = async {
                 getAssetsUseCase.invoke(fetchFromRemote)
-            }
-
-            val iconsResult = async {
-                getAssetIconsUseCase.invoke(Constants.ImageSize.MEDIUM.size)
             }
 
             assetsResult.await().collectLatest { result ->
@@ -88,6 +95,8 @@ class AssetsViewModel @Inject constructor(
                                 assets = result.data ?: emptyList()
                             )
                         }
+                        // Get asset icons
+                        getAssetIcons()
                     }
 
                     is WorkResult.Error -> {
@@ -101,6 +110,15 @@ class AssetsViewModel @Inject constructor(
                 }
             }
 
+
+        }
+    }
+
+    private fun getAssetIcons() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val iconsResult = async {
+                getAssetIconsUseCase.invoke(Constants.ImageSize.MEDIUM.size)
+            }
             iconsResult.await().collectLatest { result ->
                 when (result) {
                     is WorkResult.Loading -> {
@@ -144,6 +162,60 @@ class AssetsViewModel @Inject constructor(
                     )
                 }
             )
+        }
+    }
+
+    fun onSearchTextChanged(text: String) {
+        _searchBarState.update { state ->
+            state.copy(
+                searchString = text,
+            )
+        }
+        if (text.isNotEmpty()) {
+            searchJob = viewModelScope.launch(Dispatchers.IO) { delayThenFetchAssets() }
+        } else {
+            searchJob?.cancel()
+        }
+    }
+
+    private suspend fun delayThenFetchAssets() {
+        _assetState.update { state ->
+            state.copy(
+                isLoading = true
+            )
+        }
+        delay(3000L)
+
+        searchUseCase.invoke(_searchBarState.value.searchString).collectLatest { result ->
+            when (result) {
+                is WorkResult.Loading -> {
+                    _assetState.update { state ->
+                        state.copy(
+                            isLoading = true
+                        )
+                    }
+                }
+
+                is WorkResult.Success -> {
+                    _assetState.update { state ->
+                        state.copy(
+                            isLoading = false,
+                            assets = result.data ?: emptyList()
+                        )
+                    }
+                    // Get asset icons
+                    getAssetIcons()
+                }
+
+                is WorkResult.Error -> {
+                    _assetState.update { state ->
+                        state.copy(
+                            isLoading = false,
+                            error = result.message
+                        )
+                    }
+                }
+            }
         }
     }
 

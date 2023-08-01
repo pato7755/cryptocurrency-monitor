@@ -30,4 +30,6 @@ interface CryptocurrencyRepository {
 
     suspend fun removeFavouriteAsset(assetId: String): Boolean
 
+    suspend fun searchAssets(searchString: String): Flow<WorkResult<List<Asset>>>
+
 }

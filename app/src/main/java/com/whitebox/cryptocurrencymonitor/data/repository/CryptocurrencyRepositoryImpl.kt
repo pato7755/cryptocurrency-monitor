@@ -214,4 +214,25 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
 //        return dao.getAssetById(assetId = assetId)?.isFavourite ?: true
     }
 
+    override suspend fun searchAssets(searchString: String): Flow<WorkResult<List<Asset>>>  = flow {
+        emit(WorkResult.Loading())
+        try {
+            val localAssets = dao.searchAssets(searchString).map { it.toDomainAsset() }
+            Log.d("dao", localAssets.toString())
+            emit(WorkResult.Success(localAssets))
+        } catch (e: HttpException) {
+            emit(
+                WorkResult.Error(
+                    message = e.message ?: "An error occurred while fetching exchange rate"
+                )
+            )
+        } catch (e: IOException) {
+            emit(
+                WorkResult.Error(
+                    message = e.message ?: "An error occurred while fetching exchange rate"
+                )
+            )
+        }
+    }
+
 }

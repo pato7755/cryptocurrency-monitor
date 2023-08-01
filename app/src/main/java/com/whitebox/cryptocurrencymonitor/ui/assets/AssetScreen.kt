@@ -20,9 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
@@ -32,6 +32,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -43,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -61,7 +62,7 @@ import com.whitebox.cryptocurrencymonitor.ui.common.ProgressIndicator
 @Composable
 fun AssetScreen(
     viewModel: AssetsViewModel = hiltViewModel(),
-    onAssetClick: (String) -> Unit
+    onAssetClick: (String) -> Unit,
 ) {
     val assetState by viewModel.assetState.collectAsStateWithLifecycle()
 //    val favouriteAssetState by viewModel.favouriteAssetState.collectAsStateWithLifecycle()
@@ -76,6 +77,8 @@ fun AssetScreen(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            SearchBar()
+
             Spacer(modifier = Modifier.height(20.dp))
 
             AssetList(
@@ -96,6 +99,47 @@ fun AssetScreen(
         }
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBar(
+    viewModel: AssetsViewModel = hiltViewModel(),
+) {
+    val searchBarState by viewModel.searchBarState.collectAsStateWithLifecycle()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        TextField(
+            value = searchBarState.searchString,
+            onValueChange = viewModel::onSearchTextChanged,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Search") },
+            singleLine = true,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Close",
+                    tint = Color.White,
+//                  modifier = Modifier.clickable {  }
+                )
+            },
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                placeholderColor = Color.Gray
+            ),
+        )
+    }
 }
 
 @Composable
@@ -237,7 +281,7 @@ fun AppBar() {
                 )
             }
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { },
                 modifier = Modifier
                     .padding(end = 16.dp)
                     .size(30.dp)

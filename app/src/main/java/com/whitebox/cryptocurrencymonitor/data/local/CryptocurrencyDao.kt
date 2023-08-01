@@ -38,4 +38,7 @@ interface CryptocurrencyDao {
 
     @Query("SELECT * FROM exchange_rate WHERE asset_id_base = :assetIdBase")
     suspend fun getExchangeRate(assetIdBase: String): ExchangeRateEntity?
+
+    @Query("SELECT * FROM asset WHERE asset_id LIKE '%' || :searchString || '%'")
+    suspend fun searchAssets(searchString: String): List<AssetEntity>
 }
