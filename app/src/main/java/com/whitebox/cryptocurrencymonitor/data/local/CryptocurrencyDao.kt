@@ -18,7 +18,7 @@ interface CryptocurrencyDao {
     fun addFavouriteAsset(assetId: String)
 
     @Query("UPDATE Asset SET is_favourite = 0 WHERE asset_id = :assetId")
-    fun removeFavouriteAsset(assetId: String): Int
+    fun removeFavouriteAsset(assetId: String)
 
     @Query("SELECT * FROM Asset WHERE is_favourite = 1")
     suspend fun getFavouriteAssets(): List<AssetEntity>
