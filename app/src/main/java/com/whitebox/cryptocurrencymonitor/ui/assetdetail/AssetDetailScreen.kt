@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,12 +22,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.whitebox.cryptocurrencymonitor.R
 import com.whitebox.cryptocurrencymonitor.common.Constants
 
 @Composable
@@ -55,31 +55,32 @@ fun AssetDetailScreen(
             assetDetailState.asset?.let { assetDetail ->
                 // Asset details
                 Text(
-                    text = "Currency : ${assetDetail.assetId}",
+                    text = stringResource(id = R.string.currency) + " : ${assetDetail.assetId}",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Name : ${assetDetail.name}",
+                    text = "${stringResource(id = R.string.name)} : ${assetDetail.name}",
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Is Cryptocurrency : " +
+                    text = "${stringResource(R.string.is_cryptocurrency)} " +
                             if (assetDetail.typeIsCrypto == 1) Constants.YesOrNo.YES.name
                             else Constants.YesOrNo.NO.name,
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Is Favourite : ${assetDetail.isFavourite}",
+                    text = stringResource(id = R.string.is_favourite) +
+                            " ${assetDetail.isFavourite}",
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "USD price : $${assetDetail.priceUsd}",
+                    text = stringResource(R.string.usd_price) + " ${assetDetail.priceUsd}",
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(30.dp))
@@ -87,20 +88,22 @@ fun AssetDetailScreen(
                 // Asset's EUR exchange rate
                 exchangeRateState.exchangeRate?.let { exchangeRate ->
                     Text(
-                        text = "Exchange Rate",
+                        text = stringResource(R.string.exchange_rate),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "1 ${exchangeRate.assetIdQuote} = " +
-                                "${exchangeRate.rate} ${exchangeRate.assetIdBase}",
+                        text = stringResource(R.string.one) +
+                                " ${exchangeRate.assetIdQuote} " +
+                                stringResource(id = R.string.equals) +
+                                " ${exchangeRate.rate} ${exchangeRate.assetIdBase}",
                         fontSize = 14.sp
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "As at ${exchangeRate.time}",
+                        text = stringResource(R.string.as_at) + " ${exchangeRate.time}",
                         fontSize = 14.sp
                     )
                 }
@@ -114,33 +117,33 @@ fun AssetDetailScreen(
 
 @ExperimentalMaterial3Api
 @Composable
-fun AppBar (
+fun AppBar(
     onBack: () -> Unit
 ) {
     TopAppBar(
-            title = { Text(text = "Details", color = Color.White) },
-            modifier = Modifier.background(MaterialTheme.colorScheme.primary),
-            colors = TopAppBarDefaults.smallTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = Color.White,
-                navigationIconContentColor = Color.White,
-                actionIconContentColor = Color.White
-            ),
-            navigationIcon = {
-                IconButton(
-                    onClick = { onBack() },
-                    modifier = Modifier
-                        .padding(end = 16.dp)
-                        .size(30.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
+        title = { Text(text = stringResource(R.string.details), color = Color.White) },
+        modifier = Modifier.background(MaterialTheme.colorScheme.primary),
+        colors = TopAppBarDefaults.smallTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White,
+            actionIconContentColor = Color.White
+        ),
+        navigationIcon = {
+            IconButton(
+                onClick = { onBack() },
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(30.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = stringResource(R.string.back),
+                    tint = Color.White
+                )
             }
-        )
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

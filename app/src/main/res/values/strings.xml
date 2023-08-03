@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">CryptocurrencyMonitor</string>
+    <string name="view_cryptocurrencies">View Cryptocurrencies</string>
+    <string name="favourite">Favourite</string>
+    <string name="search">Search</string>
+    <string name="close">Close</string>
+    <string name="icon">Icon</string>
+    <string name="currency">Currency</string>
+    <string name="name">Name</string>
+    <string name="is_cryptocurrency">Is Cryptocurrency :</string>
+    <string name="is_favourite">Is Favourite :</string>
+    <string name="usd_price">USD price :</string>
+    <string name="exchange_rate">Exchange Rate</string>
+    <string name="one">1</string>
+    <string name="equals">=</string>
+    <string name="as_at">"As at "</string>
+    <string name="details">Details</string>
+    <string name="back">Back</string>
 </resources>

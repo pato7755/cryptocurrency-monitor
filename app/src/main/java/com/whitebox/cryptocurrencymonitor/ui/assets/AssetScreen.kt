@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -113,19 +114,19 @@ fun SearchBar(
             value = searchBarState.searchString,
             onValueChange = viewModel::onSearchTextChanged,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(text = "Search") },
+            placeholder = { Text(text = stringResource(id = R.string.search)) },
             singleLine = true,
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(id = R.string.search),
                     modifier = Modifier.size(18.dp),
                 )
             },
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.close),
                     tint = Color.White,
 //                  modifier = Modifier.clickable {  }
                 )
@@ -197,7 +198,7 @@ fun AssetItem(
                 placeholder = painterResource(R.drawable.sharp_money_off_24),
                 error = painterResource(id = R.drawable.sharp_money_off_24),
                 contentScale = ContentScale.Crop,
-                contentDescription = "Icon"
+                contentDescription = stringResource(R.string.icon)
             )
 
             Column(
@@ -227,7 +228,7 @@ fun AssetItem(
                 } else {
                     Icons.Default.FavoriteBorder
                 },
-                contentDescription = "Favourite",
+                contentDescription = stringResource(id = R.string.favourite),
                 modifier = Modifier
                     .size(30.dp)
                     .clickable {
@@ -251,7 +252,12 @@ fun AppBar(
 ) {
     var isTopBarFavouriteSelected by remember { mutableStateOf(false) }
     TopAppBar(
-        title = { Text(text = "View Cryptocurrencies", color = Color.White) },
+        title = {
+            Text(
+                text = stringResource(R.string.view_cryptocurrencies),
+                color = Color.White
+            )
+        },
         modifier = Modifier.background(MaterialTheme.colorScheme.primary),
         colors = TopAppBarDefaults.smallTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
@@ -278,7 +284,7 @@ fun AppBar(
                     } else {
                         Icons.Default.FavoriteBorder
                     },
-                    contentDescription = "Favourite",
+                    contentDescription = stringResource(R.string.favourite),
                     tint = Color.White
                 )
             }
@@ -290,7 +296,7 @@ fun AppBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.search),
                     tint = Color.White
                 )
             }
