@@ -7,6 +7,8 @@ import com.whitebox.cryptocurrencymonitor.BuildConfig
 import com.whitebox.cryptocurrencymonitor.CryptocurrencyApp
 import com.whitebox.cryptocurrencymonitor.common.Constants
 import com.whitebox.cryptocurrencymonitor.data.remote.AssetApi
+import com.whitebox.cryptocurrencymonitor.util.ConnectivityObserver
+import com.whitebox.cryptocurrencymonitor.util.NetworkConnectivityObserver
 import com.whitebox.cryptocurrencymonitor.util.NetworkConnectivityService
 import com.whitebox.cryptocurrencymonitor.util.NetworkConnectivityServiceImpl
 import dagger.Module
@@ -54,23 +56,20 @@ object NetworkModule {
             .create(AssetApi::class.java)
     }
 
-    private val READ_TIMEOUT = 30
-    private val WRITE_TIMEOUT = 30
-    private val CONNECTION_TIMEOUT = 10
-    private val CACHE_SIZE_BYTES = 10 * 1024 * 1024L // 10 MB
+    private const val READ_TIMEOUT = 30
+    private const val WRITE_TIMEOUT = 30
+    private const val CONNECTION_TIMEOUT = 10
 
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        headerInterceptor: Interceptor,
-//        cache: Cache
+        headerInterceptor: Interceptor
     ): OkHttpClient {
 
         val okHttpClientBuilder = OkHttpClient().newBuilder()
         okHttpClientBuilder.connectTimeout(CONNECTION_TIMEOUT.toLong(), TimeUnit.SECONDS)
         okHttpClientBuilder.readTimeout(READ_TIMEOUT.toLong(), TimeUnit.SECONDS)
         okHttpClientBuilder.writeTimeout(WRITE_TIMEOUT.toLong(), TimeUnit.SECONDS)
-//        okHttpClientBuilder.cache(cache)
         okHttpClientBuilder.addInterceptor(headerInterceptor)
 
         return okHttpClientBuilder.build()
@@ -95,10 +94,12 @@ object NetworkModule {
         return NetworkConnectivityServiceImpl(context = context)
     }
 
-//    @Provides
-//    @Singleton
-//    internal fun provideCache(context: Context): Cache {
-//        val httpCacheDirectory = File(context.cacheDir.absolutePath, "HttpCache")
-//        return Cache(httpCacheDirectory, CACHE_SIZE_BYTES)
-//    }
+    @Provides
+    @Singleton
+    fun provideNetworkConnectivityObserver(
+        @ApplicationContext context: Context,
+    ): ConnectivityObserver {
+        return NetworkConnectivityObserver(context = context)
+    }
+
 }
