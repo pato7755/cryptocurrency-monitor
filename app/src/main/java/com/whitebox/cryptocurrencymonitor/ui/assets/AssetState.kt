@@ -6,5 +6,6 @@ data class AssetState(
     val isLoading: Boolean = false,
     val assets: List<Asset> = emptyList(),
     val isFavourite: Boolean = false,
+    val isRefreshed: Boolean = false,
     val error: String? = ""
 )
