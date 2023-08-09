@@ -9,6 +9,6 @@ import com.whitebox.cryptocurrencymonitor.data.local.entity.ExchangeRateEntity
     entities = [AssetEntity::class, ExchangeRateEntity::class],
     version = 1
 )
-abstract class CryptocurrencyDatabase: RoomDatabase() {
+abstract class CryptocurrencyDatabase : RoomDatabase() {
     abstract fun cryptocurrencyDao(): CryptocurrencyDao
 }

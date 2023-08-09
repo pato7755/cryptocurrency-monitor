@@ -8,6 +8,15 @@ import java.time.format.DateTimeParseException
 
 object Utilities {
 
+    /**
+     * Formats a string amount as a currency amount in the format "#,##0.00"
+     *
+     * This function takes a numeric string representation and attempts to format it as a currency amount
+     * using the specified decimal format pattern. If the conversion fails due to an arithmetic or
+     * number format exception, an error message is logged and an empty string is returned.
+     *
+     * @return The formatted currency amount string if successful, otherwise an empty string.
+     */
     fun String.formatToCurrencyAmount(): String {
         val formattedAmount: String = try {
             val decimalFormat = DecimalFormat("#,##0.00")
@@ -22,6 +31,15 @@ object Utilities {
         return formattedAmount
     }
 
+    /**
+     * Converts a string date to a formatted date string
+     *
+     * This function takes a string representation of a date and attempts to convert it to a formatted
+     * date string using the specified date format pattern. If the conversion fails due to a datetime
+     * parse exception, an empty string is returned.
+     *
+     * @return The formatted date string if successful, otherwise an empty string.
+     */
     fun String.convertDate(): String {
         val result: String
         try {

@@ -17,12 +17,26 @@ interface NetworkConnectivityService {
     val networkStatus: Flow<NetworkStatus>
 }
 
+/**
+ * Implementation of the NetworkConnectivityService interface providing network status information.
+ *
+ * This class monitors the network connectivity status and provides a [Flow] of [NetworkStatus]
+ * representing whether the device is currently connected to a network or disconnected.
+ */
 class NetworkConnectivityServiceImpl @Inject constructor (
     context: Context
 ): NetworkConnectivityService  {
 
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
+    /**
+     * A [Flow] of [NetworkStatus] that emits the current network connectivity status.
+     *
+     * The [Flow] emits [NetworkStatus.Connected] when the device becomes connected to a network,
+     * and [NetworkStatus.Disconnected] when the device becomes disconnected from the network.
+     *
+     * The emitted values are distinct until a change in connectivity status occurs.
+     */
     override val networkStatus: Flow<NetworkStatus> = callbackFlow {
         val connectivityCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {

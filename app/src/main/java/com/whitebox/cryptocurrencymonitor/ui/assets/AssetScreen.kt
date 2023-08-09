@@ -94,10 +94,12 @@ fun AssetScreen(
             )
         }
 
+        // show progress indicator when loading
         if (assetState.isLoading) {
             ProgressIndicator()
         }
 
+        // show error message if there is an error
         LaunchedEffect(assetState.error) {
             if (assetState.error != null) {
                 Toast.makeText(context, assetState.error, Toast.LENGTH_SHORT).show()
@@ -134,9 +136,9 @@ fun AppBar(
                 onClick = {
                     isTopBarFavouriteSelected = !isTopBarFavouriteSelected
                     if (isTopBarFavouriteSelected)
-                        viewModel.getFavouriteAssets()
+                        viewModel.getFavouriteAssets() // fetch favourite assets
                     else
-                        viewModel.getAssetsAndIcons()
+                        viewModel.getAssetsAndIcons() // fetch all assets
                 },
                 modifier = Modifier
                     .padding(end = 16.dp)
@@ -200,15 +202,17 @@ fun SearchBar(
                 },
                 trailingIcon = {
                     if (searchBarState.searchString.isNotEmpty()) {
+                        // show close button when search bar text is not empty
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = stringResource(R.string.close),
                             tint = Color.Black,
                             modifier = Modifier.clickable {
+                                // reset search bar text and fetch all assets
                                 viewModel.onSearchTextChanged("")
+                                viewModel.getAssetsAndIcons(fetchFromRemote = false)
                             }
                         )
-                        viewModel.getAssetsAndIcons(fetchFromRemote = false)
                     }
                 },
                 colors = TextFieldDefaults.textFieldColors(
@@ -216,7 +220,7 @@ fun SearchBar(
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
                     placeholderColor = Color.Gray
-                ),
+                )
             )
         }
     }

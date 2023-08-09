@@ -9,6 +9,7 @@ import com.whitebox.cryptocurrencymonitor.domain.model.Asset
 import com.whitebox.cryptocurrencymonitor.domain.model.AssetIcon
 import com.whitebox.cryptocurrencymonitor.domain.model.ExchangeRate
 
+// Asset DTO to Domain Model mapper
 fun AssetDto.toDomainAsset(): Asset {
     return Asset(
         assetId = assetId,
@@ -18,6 +19,7 @@ fun AssetDto.toDomainAsset(): Asset {
     )
 }
 
+// Asset Entity to Domain Model mapper
 fun AssetEntity.toDomainAsset(): Asset {
     return Asset(
         assetId = assetId,
@@ -28,6 +30,7 @@ fun AssetEntity.toDomainAsset(): Asset {
     )
 }
 
+// Asset Domain Model to Entity mapper
 fun Asset.toLocalAsset(): AssetEntity {
     return AssetEntity(
         assetId = assetId,
@@ -38,6 +41,7 @@ fun Asset.toLocalAsset(): AssetEntity {
     )
 }
 
+// AssetIcon DTO to Domain Model mapper
 fun AssetIconDto.toDomainAssetIcon(): AssetIcon {
     return AssetIcon(
         assetId = assetId,
@@ -45,6 +49,7 @@ fun AssetIconDto.toDomainAssetIcon(): AssetIcon {
     )
 }
 
+// ExchangeRate DTO to Domain Model mapper
 fun ExchangeRateDto.toDomainExchangeRate(): ExchangeRate {
     return ExchangeRate(
         assetIdBase = assetIdBase,
@@ -54,6 +59,7 @@ fun ExchangeRateDto.toDomainExchangeRate(): ExchangeRate {
     )
 }
 
+// ExchangeRate Entity to Domain Model mapper
 fun ExchangeRateEntity.toDomainExchangeRate(): ExchangeRate {
     return ExchangeRate(
         assetIdBase = assetIdBase,
@@ -63,6 +69,7 @@ fun ExchangeRateEntity.toDomainExchangeRate(): ExchangeRate {
     )
 }
 
+// ExchangeRate Domain Model to Entity mapper
 fun ExchangeRate.toLocalExchangeRate(): ExchangeRateEntity {
     return ExchangeRateEntity(
         assetIdBase = assetIdBase,

@@ -1,6 +1,5 @@
 package com.whitebox.cryptocurrencymonitor.ui.assets
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitebox.cryptocurrencymonitor.common.Constants
@@ -20,12 +19,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,7 +35,7 @@ class AssetsViewModel @Inject constructor(
     private val addFavouriteAssetUseCase: AddFavouriteAssetUseCase,
     private val removeFavouriteAssetUseCase: RemoveFavouriteAssetUseCase,
     private val searchUseCase: SearchUseCase,
-    val networkConnectivityService: NetworkConnectivityService
+    private val networkConnectivityService: NetworkConnectivityService
 ) : ViewModel() {
     private val _assetState = MutableStateFlow(AssetState())
     val assetState = _assetState.asStateFlow()
@@ -51,40 +47,20 @@ class AssetsViewModel @Inject constructor(
 
     var searchJob: Job? = null
 
-    private val _networkConnectivityState: StateFlow<NetworkStatus> =
-        networkConnectivityService.networkStatus.stateIn(
-            initialValue = NetworkStatus.Unknown,
-            scope = viewModelScope,
-            started = WhileSubscribed(3000)
-        )
-
-    var networkConnectivityState = _networkConnectivityState
-
     init {
         fetchData()
     }
-    fun fetchDatae() {
-        Log.d("Asset fetchData:", "fetch")
-        if (_networkConnectivityState.value == NetworkStatus.Connected) {
-            Log.d("Network Status:", "Connected")
-            getAssetsAndIcons()
-        } else if (_networkConnectivityState.value == NetworkStatus.Disconnected) {
-            Log.d("Network Status:", "Not Connected")
-            getAssetsAndIcons(fetchFromRemote = false)
-        }
-    }
 
-    fun fetchData() {
-        Log.d("Asset fetchData:", "fetch")
+    private fun fetchData() {
         viewModelScope.launch(Dispatchers.IO) {
+            // Observe network connectivity status
             networkConnectivityService.networkStatus.distinctUntilChanged()
                 .collect { currentNetworkStatus ->
-
                     if (currentNetworkStatus == NetworkStatus.Connected) {
-                        Log.d("Network Status:", "Connected")
+                        // fetch from remote
                         getAssetsAndIcons()
                     } else if (currentNetworkStatus == NetworkStatus.Disconnected) {
-                        Log.d("Network Status:", "Not Connected")
+                        // fetch from local cache
                         getAssetsAndIcons(fetchFromRemote = false)
                     }
                 }
@@ -94,9 +70,7 @@ class AssetsViewModel @Inject constructor(
     fun getAssetsAndIcons(fetchFromRemote: Boolean = true) {
         viewModelScope.launch(Dispatchers.IO) {
             val assetsResult = async {
-                Log.d("call getAssetsUseCase:", "getAssetsUseCase")
-                Log.d("fetchFromRemote:", fetchFromRemote.toString())
-                getAssetsUseCase.invoke(fetchFromRemote)
+                getAssetsUseCase.invoke(fetchFromRemote = fetchFromRemote)
             }
 
             assetsResult.await().collectLatest { result ->
@@ -105,15 +79,13 @@ class AssetsViewModel @Inject constructor(
                         withContext(Dispatchers.Main) {
                             _assetState.update { state ->
                                 state.copy(
-                                    isLoading = true,
-//                                assets = result.data ?: emptyList()
+                                    isLoading = true
                                 )
                             }
                         }
                     }
 
                     is WorkResult.Success -> {
-                        Log.d("Dao Result:", result.data.toString())
                         withContext(Dispatchers.Main) {
                             _assetState.update { state ->
                                 state.copy(
@@ -123,9 +95,10 @@ class AssetsViewModel @Inject constructor(
                             }
                         }
                         if (!_iconState.value.isFetched) {
-                            // Get asset icons
+                            // fetch icons
                             getAssetIcons()
                         } else {
+                            // merge icons with assets
                             updateAssetsWithIcons()
                         }
                     }
@@ -146,10 +119,8 @@ class AssetsViewModel @Inject constructor(
     }
 
     private fun getAssetIcons() {
-        Log.d("getAssetIcons", "getAssetIcons")
         viewModelScope.launch(Dispatchers.IO) {
             val iconsResult = async {
-                Log.d("call getAssetIcons:", "getAssetIconsUseCase")
                 getAssetIconsUseCase.invoke(Constants.ImageSize.MEDIUM.size)
             }
             iconsResult.await().collectLatest { result ->
@@ -164,7 +135,6 @@ class AssetsViewModel @Inject constructor(
 
                     is WorkResult.Success -> {
                         withContext(Dispatchers.Main) {
-                            Log.d("getAssetIcons", "update icons state")
                             _iconState.update { state ->
                                 state.copy(
                                     isLoading = false,
@@ -173,7 +143,7 @@ class AssetsViewModel @Inject constructor(
                                 )
                             }
                         }
-                        // Update assets with icons
+                        // merge icons with assets
                         updateAssetsWithIcons()
 
                     }
@@ -194,7 +164,6 @@ class AssetsViewModel @Inject constructor(
     }
 
     private fun updateAssetsWithIcons() {
-        Log.d("updateAssetsWithIcons", "updateAssetsWithIcons")
         _assetState.update { state ->
             state.copy(
                 assets = state.assets.map { asset ->
@@ -247,9 +216,10 @@ class AssetsViewModel @Inject constructor(
                         )
                     }
                     if (!_iconState.value.isFetched) {
-                        // Get asset icons
+                        // fetch asset icons
                         getAssetIcons()
                     } else {
+                        // merge icons with assets
                         updateAssetsWithIcons()
                     }
                 }
@@ -279,18 +249,17 @@ class AssetsViewModel @Inject constructor(
                     }
 
                     is WorkResult.Success -> {
-                        Log.d("Favourite Assets:", result.data.toString())
                         _assetState.update { state ->
                             state.copy(
                                 isFavourite = false,
                                 assets = result.data ?: emptyList()
                             )
                         }
-                        Log.d("Favourite Assets:", _assetState.value.assets.toString())
                         if (!_iconState.value.isFetched) {
-                            // Get asset icons
+                            // fetch asset icons
                             getAssetIcons()
                         } else {
+                            // merge icons with assets
                             updateAssetsWithIcons()
                         }
                     }

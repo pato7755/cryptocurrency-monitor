@@ -50,16 +50,11 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
 
         try {
             if (localAssets.isNotEmpty()) {
-                Log.d("RepoImpl", "localAssets not empty")
                 emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
             }
-            Log.d("RepoImpl", "fetch remote assets")
             val remoteAssets = api.getAssets().map { it.toDomainAsset() }
-            Log.d("RepoImpl", "update localAssets")
             dao.upsertAssets(remoteAssets.map { it.toLocalAsset() })
-            Log.d("RepoImpl", "fetch updated localAssets")
             val updatedLocalAssets = dao.getAllAssets()
-            Log.d("RepoImpl", "emit updated localAssets")
             emit(WorkResult.Success(updatedLocalAssets.map { it.toDomainAsset() }))
         } catch (e: HttpException) {
             emit(
@@ -83,10 +78,16 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         fetchFromRemote: Boolean
     ): Flow<WorkResult<Asset?>> = flow {
         emit(WorkResult.Loading())
-        var asset = dao.getAssetById(assetId)?.toDomainAsset()
+        var asset: Asset? = null
+        try {
+            asset = dao.getAssetById(assetId)?.toDomainAsset()
+        } catch (ex: Exception) {
+            Log.e("CryptocurrencyRepositoryImpl", "getAsset: ${ex.message}")
+        }
 
         if (!fetchFromRemote) {
-            asset?.let { emit(WorkResult.Success(asset)) } ?: emit(
+            asset?.let { emit(WorkResult.Success(asset))
+                Log.e("CryptocurrencyRepositoryImpl", "getAsset: $it")} ?: emit(
                 WorkResult.Error(
                     message = "No data found"
                 )
@@ -96,17 +97,23 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
 
         try {
             // if fetch from cache fails, fetch from network
+            asset?.let { emit(WorkResult.Success(asset)) }
+            Log.e("CryptocurrencyRepositoryImpl", "fetch from remote")
             asset = api.getAssetDetails(assetId).map { it.toDomainAsset() }.first()
+            Log.e("CryptocurrencyRepositoryImpl", "asset: $asset")
             emit(WorkResult.Success(asset))
-
         } catch (e: HttpException) {
+            Log.e("CryptocurrencyRepositoryImpl", "http error: ${e.message}")
+            Log.e("CryptocurrencyRepositoryImpl", "http error: ${e.localizedMessage}")
+            Log.e("CryptocurrencyRepositoryImpl", "http error: ${e.cause}")
             emit(
                 WorkResult.Error(
-                    message = e.message ?: "An error occurred while fetching asset details",
+                    message = e.message + " - An error occurred while fetching asset details",
                     data = asset
                 )
             )
         } catch (e: IOException) {
+            Log.e("CryptocurrencyRepositoryImpl", "io error: ${e.message}")
             emit(
                 WorkResult.Error(
                     message = e.message ?: "An error occurred while fetching asset details",

@@ -1,5 +1,6 @@
 package com.whitebox.cryptocurrencymonitor.ui.assetdetail
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,10 +21,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +47,7 @@ fun AssetDetailScreen(
 ) {
     val assetDetailState by viewModel.assetDetailsState.collectAsStateWithLifecycle()
     val exchangeRateState by viewModel.exchangeRateState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     Scaffold(
         topBar = { AppBar(onBack = onBack) },
         modifier = Modifier.fillMaxSize()
@@ -121,8 +125,21 @@ fun AssetDetailScreen(
 
         }
     }
+    // show progress indicator when loading
     if (assetDetailState.isLoading || exchangeRateState.isLoading) {
         ProgressIndicator()
+    }
+    // show error message if there is an error while fetching asset details
+    LaunchedEffect(assetDetailState.error) {
+        if (assetDetailState.error != null) {
+            Toast.makeText(context, assetDetailState.error, Toast.LENGTH_SHORT).show()
+        }
+    }
+    // show error message if there is an error while fetching exchange rate
+    LaunchedEffect(exchangeRateState.error) {
+        if (exchangeRateState.error != null) {
+            Toast.makeText(context, exchangeRateState.error, Toast.LENGTH_SHORT).show()
+        }
     }
 }
 
