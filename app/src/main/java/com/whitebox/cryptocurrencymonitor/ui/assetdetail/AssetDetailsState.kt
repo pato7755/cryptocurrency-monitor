@@ -6,5 +6,5 @@ data class AssetDetailsState(
     val isLoading: Boolean = false,
     val asset: Asset? = null,
     val isFavourite: Boolean = false,
-    val error: String? = ""
+    val error: String? = null
 )

@@ -7,5 +7,5 @@ data class AssetState(
     val assets: List<Asset> = emptyList(),
     val isFavourite: Boolean = false,
     val isRefreshed: Boolean = false,
-    val error: String? = ""
+    val error: String? = null
 )
