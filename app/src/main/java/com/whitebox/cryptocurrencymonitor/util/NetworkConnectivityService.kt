@@ -23,11 +23,12 @@ interface NetworkConnectivityService {
  * This class monitors the network connectivity status and provides a [Flow] of [NetworkStatus]
  * representing whether the device is currently connected to a network or disconnected.
  */
-class NetworkConnectivityServiceImpl @Inject constructor (
+class NetworkConnectivityServiceImpl @Inject constructor(
     context: Context
-): NetworkConnectivityService  {
+) : NetworkConnectivityService {
 
-    private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     /**
      * A [Flow] of [NetworkStatus] that emits the current network connectivity status.
