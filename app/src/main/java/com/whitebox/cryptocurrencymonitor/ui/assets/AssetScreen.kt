@@ -1,6 +1,11 @@
 package com.whitebox.cryptocurrencymonitor.ui.assets
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -66,8 +71,11 @@ fun AssetScreen(
     onAssetClick: (String) -> Unit,
 ) {
     val assetState by viewModel.assetState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var visible by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
-        topBar = { AppBar() },
+        topBar = { AppBar({ visible = !visible }) },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
@@ -76,7 +84,7 @@ fun AssetScreen(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SearchBar()
+            SearchBar(visible = visible)
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -90,7 +98,6 @@ fun AssetScreen(
             ProgressIndicator()
         }
 
-        val context = LocalContext.current
         LaunchedEffect(assetState.error) {
             if (assetState.error != null) {
                 Toast.makeText(context, assetState.error, Toast.LENGTH_SHORT).show()
@@ -102,42 +109,116 @@ fun AssetScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun AppBar(
+    onTabBarSearchClicked: () -> Unit,
+    viewModel: AssetsViewModel = hiltViewModel(),
+) {
+    var isTopBarFavouriteSelected by remember { mutableStateOf(false) }
+
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.view_cryptocurrencies),
+                color = Color.White
+            )
+        },
+        modifier = Modifier.background(MaterialTheme.colorScheme.primary),
+        colors = TopAppBarDefaults.smallTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White,
+            actionIconContentColor = Color.White
+        ),
+        actions = {
+            IconButton(
+                onClick = {
+                    isTopBarFavouriteSelected = !isTopBarFavouriteSelected
+                    if (isTopBarFavouriteSelected)
+                        viewModel.getFavouriteAssets()
+                    else
+                        viewModel.getAssetsAndIcons()
+                },
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(30.dp)
+            ) {
+                Icon(
+                    imageVector = if (isTopBarFavouriteSelected) {
+                        Icons.Default.Favorite
+                    } else {
+                        Icons.Default.FavoriteBorder
+                    },
+                    contentDescription = stringResource(R.string.favourite),
+                    tint = Color.White
+                )
+            }
+            IconButton(
+                onClick = { onTabBarSearchClicked() },
+                modifier = Modifier
+                    .padding(end = 16.dp)
+                    .size(30.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = stringResource(R.string.search),
+                    tint = Color.White
+                )
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun SearchBar(
+    visible: Boolean,
     viewModel: AssetsViewModel = hiltViewModel(),
 ) {
     val searchBarState by viewModel.searchBarState.collectAsStateWithLifecycle()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        TextField(
-            value = searchBarState.searchString,
-            onValueChange = viewModel::onSearchTextChanged,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(text = stringResource(id = R.string.search)) },
-            singleLine = true,
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(id = R.string.search),
-                    modifier = Modifier.size(18.dp),
-                )
-            },
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = stringResource(R.string.close),
-                    tint = Color.White,
-//                  modifier = Modifier.clickable {  }
-                )
-            },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                placeholderColor = Color.Gray
-            ),
-        )
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            TextField(
+                value = searchBarState.searchString,
+                onValueChange = viewModel::onSearchTextChanged,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = stringResource(id = R.string.search)) },
+                singleLine = true,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = stringResource(id = R.string.search),
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+                trailingIcon = {
+                    if (searchBarState.searchString.isNotEmpty()) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.close),
+                            tint = Color.Black,
+                            modifier = Modifier.clickable {
+                                viewModel.onSearchTextChanged("")
+                            }
+                        )
+                        viewModel.getAssetsAndIcons(fetchFromRemote = false)
+                    }
+                },
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    placeholderColor = Color.Gray
+                ),
+            )
+        }
     }
 }
 
@@ -166,7 +247,7 @@ fun AssetItem(
     onAssetClick: (String) -> Unit,
     viewModel: AssetsViewModel = hiltViewModel()
 ) {
-    var isFavourite by rememberSaveable { mutableStateOf(asset.isFavourite) }
+    var isFavourite by rememberSaveable(asset.assetId) { mutableStateOf(asset.isFavourite) }
 
     Box(
         modifier = Modifier
@@ -232,7 +313,7 @@ fun AssetItem(
                 modifier = Modifier
                     .size(30.dp)
                     .clickable {
-                        isFavourite.let { isFavourite = viewModel.toggleFavourite(it) }
+                        isFavourite = !isFavourite
                         if (isFavourite) {
                             viewModel.addFavouriteAsset(asset.assetId)
                         } else {
@@ -244,66 +325,6 @@ fun AssetItem(
     }
 
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppBar(
-    viewModel: AssetsViewModel = hiltViewModel(),
-) {
-    var isTopBarFavouriteSelected by remember { mutableStateOf(false) }
-    TopAppBar(
-        title = {
-            Text(
-                text = stringResource(R.string.view_cryptocurrencies),
-                color = Color.White
-            )
-        },
-        modifier = Modifier.background(MaterialTheme.colorScheme.primary),
-        colors = TopAppBarDefaults.smallTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = Color.White,
-            navigationIconContentColor = Color.White,
-            actionIconContentColor = Color.White
-        ),
-        actions = {
-            IconButton(
-                onClick = {
-                    isTopBarFavouriteSelected = !isTopBarFavouriteSelected
-                    if (isTopBarFavouriteSelected)
-                        viewModel.getFavouriteAssets()
-                    else
-                        viewModel.getAssetsAndIcons()
-                },
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(30.dp)
-            ) {
-                Icon(
-                    imageVector = if (isTopBarFavouriteSelected) {
-                        Icons.Default.Favorite
-                    } else {
-                        Icons.Default.FavoriteBorder
-                    },
-                    contentDescription = stringResource(R.string.favourite),
-                    tint = Color.White
-                )
-            }
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(30.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(R.string.search),
-                    tint = Color.White
-                )
-            }
-        }
-    )
-}
-
 
 @Composable
 @Preview

@@ -3,6 +3,7 @@ package com.whitebox.cryptocurrencymonitor.data.repository
 import android.util.Log
 import com.whitebox.cryptocurrencymonitor.common.WorkResult
 import com.whitebox.cryptocurrencymonitor.data.local.CryptocurrencyDao
+import com.whitebox.cryptocurrencymonitor.data.local.entity.AssetEntity
 import com.whitebox.cryptocurrencymonitor.data.mapper.toDomainAsset
 import com.whitebox.cryptocurrencymonitor.data.mapper.toDomainAssetIcon
 import com.whitebox.cryptocurrencymonitor.data.mapper.toDomainExchangeRate
@@ -26,29 +27,54 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
 
     override suspend fun getAssets(fetchFromRemote: Boolean): Flow<WorkResult<List<Asset>>> = flow {
         emit(WorkResult.Loading())
-        val localAssets = dao.getAllAssets()
-        emit(WorkResult.Loading(localAssets.map { it.toDomainAsset() }))
+        var localAssets: List<AssetEntity> = emptyList()
+        Log.d("CryptocurrencyRepositoryImpl", "getAssets: fetchFromRemote: $fetchFromRemote")
+        try {
+            localAssets = dao.getAllAssets()
 
-        if (!fetchFromRemote) {
-            emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
-            return@flow
+            if (!fetchFromRemote) {
+                if (localAssets.isNotEmpty()) {
+                    emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
+                    return@flow
+                } else {
+                    emit(WorkResult.Error(
+                        message = "No data found",
+                        data = localAssets.map { it.toDomainAsset() }
+                    ))
+                    return@flow
+                }
+            }
+        } catch (ex: Exception) {
+            Log.e("CryptocurrencyRepositoryImpl", "getAssets: ${ex.message}")
         }
 
         try {
+            if (localAssets.isNotEmpty()) {
+                Log.d("RepoImpl", "localAssets not empty")
+                emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
+            }
+            Log.d("RepoImpl", "fetch remote assets")
             val remoteAssets = api.getAssets().map { it.toDomainAsset() }
+            Log.d("RepoImpl", "update localAssets")
             dao.upsertAssets(remoteAssets.map { it.toLocalAsset() })
+            Log.d("RepoImpl", "fetch updated localAssets")
             val updatedLocalAssets = dao.getAllAssets()
+            Log.d("RepoImpl", "emit updated localAssets")
             emit(WorkResult.Success(updatedLocalAssets.map { it.toDomainAsset() }))
         } catch (e: HttpException) {
-            emit(WorkResult.Error(
-                message = e.message ?: "An error occurred while fetching exchange rate",
-                data = localAssets.map { it.toDomainAsset() }
-            ))
+            emit(
+                WorkResult.Error(
+                    message = e.message ?: "An error occurred while fetching exchange rate",
+                    data = localAssets.map { it.toDomainAsset() }
+                )
+            )
         } catch (e: IOException) {
-            emit(WorkResult.Error(
-                message = e.message ?: "An error occurred while fetching exchange rate",
-                data = localAssets.map { it.toDomainAsset() }
-            ))
+            emit(
+                WorkResult.Error(
+                    message = e.message ?: "An error occurred while fetching exchange rate",
+                    data = localAssets.map { it.toDomainAsset() }
+                )
+            )
         }
     }
 
@@ -56,20 +82,23 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         assetId: String,
         fetchFromRemote: Boolean
     ): Flow<WorkResult<Asset?>> = flow {
+        emit(WorkResult.Loading())
         var asset = dao.getAssetById(assetId)?.toDomainAsset()
-        emit(WorkResult.Loading(asset))
 
         if (!fetchFromRemote) {
-            emit(WorkResult.Success(asset))
+            asset?.let { emit(WorkResult.Success(asset)) } ?: emit(
+                WorkResult.Error(
+                    message = "No data found"
+                )
+            )
             return@flow
         }
 
         try {
             // if fetch from cache fails, fetch from network
-            asset?.let {
-                asset = api.getAssetDetails(assetId).map { it.toDomainAsset() }.first()
-                emit(WorkResult.Success(asset))
-            }
+            asset = api.getAssetDetails(assetId).map { it.toDomainAsset() }.first()
+            emit(WorkResult.Success(asset))
+
         } catch (e: HttpException) {
             emit(
                 WorkResult.Error(
@@ -115,11 +144,11 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         assetId: String,
         fetchFromRemote: Boolean
     ): Flow<WorkResult<ExchangeRate>> = flow {
-        var exchangeRate = dao.getExchangeRate(assetId)
-        emit(WorkResult.Loading(exchangeRate?.toDomainExchangeRate()))
+        emit(WorkResult.Loading())
+        var localExchangeRate = dao.getExchangeRate(assetId)
 
         if (!fetchFromRemote) {
-            exchangeRate?.let {
+            localExchangeRate?.let {
                 emit(WorkResult.Success(it.toDomainExchangeRate()))
             } ?: run {
                 emit(
@@ -133,10 +162,13 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         }
 
         try {
+            localExchangeRate?.let {
+                emit(WorkResult.Success(it.toDomainExchangeRate()))
+            }
             val remoteExchangeRate = api.getExchangeRate(assetId).toDomainExchangeRate()
             dao.upsertExchangeRate(remoteExchangeRate.toLocalExchangeRate())
-            exchangeRate = dao.getExchangeRate(assetId)
-            exchangeRate?.let {
+            localExchangeRate = dao.getExchangeRate(assetId)
+            localExchangeRate?.let {
                 emit(WorkResult.Success(it.toDomainExchangeRate()))
             } ?: run {
                 emit(
@@ -150,14 +182,14 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             emit(
                 WorkResult.Error(
                     message = e.message ?: "An error occurred while fetching assets",
-                    data = exchangeRate?.toDomainExchangeRate()
+                    data = localExchangeRate?.toDomainExchangeRate()
                 )
             )
         } catch (e: IOException) {
             emit(
                 WorkResult.Error(
                     message = e.message ?: "An error occurred while fetching assets",
-                    data = exchangeRate?.toDomainExchangeRate()
+                    data = localExchangeRate?.toDomainExchangeRate()
                 )
             )
         }
@@ -167,11 +199,12 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         emit(WorkResult.Loading())
         try {
             val localAssets = dao.getAllAssets().filter { it.isFavourite }
+            Log.d("getFavouriteAssets", "localAssets: $localAssets")
             emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
         } catch (e: HttpException) {
             emit(
                 WorkResult.Error(
-                    message = e.message ?: "An error occurred while fetching exchange rate"
+                    message = e.message ?: "An error occurred while fetching favourite assets"
                 )
             )
         } catch (e: IOException) {
@@ -193,9 +226,6 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         } catch (e: IOException) {
             Log.d("fav", e.message.toString())
         }
-//        dao.addFavouriteAsset(assetId = assetId)
-//        Log.d("fav", dao.getAssetById(assetId = assetId)?.isFavourite.toString())
-//        return dao.getAssetById(assetId = assetId)?.isFavourite ?: false
         return false
     }
 
@@ -209,12 +239,9 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             Log.d("fav", e.message.toString())
         }
         return false
-//        dao.removeFavouriteAsset(assetId = assetId)
-//        Log.d("fav", dao.getAssetById(assetId = assetId)?.isFavourite.toString())
-//        return dao.getAssetById(assetId = assetId)?.isFavourite ?: true
     }
 
-    override suspend fun searchAssets(searchString: String): Flow<WorkResult<List<Asset>>>  = flow {
+    override suspend fun searchAssets(searchString: String): Flow<WorkResult<List<Asset>>> = flow {
         emit(WorkResult.Loading())
         try {
             val localAssets = dao.searchAssets(searchString).map { it.toDomainAsset() }

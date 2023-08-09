@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.whitebox.cryptocurrencymonitor.R
 import com.whitebox.cryptocurrencymonitor.common.Constants
+import com.whitebox.cryptocurrencymonitor.ui.common.ProgressIndicator
 
 @Composable
 @ExperimentalMaterial3Api
@@ -49,6 +52,7 @@ fun AssetDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.Start
         ) {
@@ -80,7 +84,8 @@ fun AssetDetailScreen(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = stringResource(R.string.usd_price) + " ${assetDetail.priceUsd}",
+                    text = stringResource(R.string.usd_price) +
+                            " ${viewModel.formatAmount(assetDetail.priceUsd)}",
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(30.dp))
@@ -98,20 +103,26 @@ fun AssetDetailScreen(
                         text = stringResource(R.string.one) +
                                 " ${exchangeRate.assetIdQuote} " +
                                 stringResource(id = R.string.equals) +
-                                " ${exchangeRate.rate} ${exchangeRate.assetIdBase}",
+                                " ${viewModel.formatAmount(exchangeRate.rate.toString())} " +
+                                exchangeRate.assetIdBase,
                         fontSize = 14.sp
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = stringResource(R.string.as_at) + " ${exchangeRate.time}",
+                        text = stringResource(R.string.as_at) + " ${
+                            viewModel.convertDate(
+                                exchangeRate.time
+                            )
+                        }",
                         fontSize = 14.sp
                     )
                 }
             }
 
         }
-
-
+    }
+    if (assetDetailState.isLoading || exchangeRateState.isLoading) {
+        ProgressIndicator()
     }
 }
 
