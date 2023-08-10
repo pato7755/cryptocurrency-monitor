@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CryptocurrencyMonitor</string>
+    <string name="app_name">CryptoTrackr</string>
     <string name="view_cryptocurrencies">View Cryptocurrencies</string>
     <string name="favourite">Favourite</string>
     <string name="search">Search</string>
