@@ -122,7 +122,7 @@ fun AppBar(
     TopAppBar(
         title = {
             Text(
-                text = stringResource(R.string.view_cryptocurrencies),
+                text = stringResource(R.string.app_name),
                 color = Color.White
             )
         },
