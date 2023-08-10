@@ -117,6 +117,7 @@ fun AppBar(
     viewModel: AssetsViewModel = hiltViewModel(),
 ) {
     var isTopBarFavouriteSelected by remember { mutableStateOf(false) }
+    var isTopBarSearchSelected by remember { mutableStateOf(false) }
 
     TopAppBar(
         title = {
@@ -156,7 +157,10 @@ fun AppBar(
                 )
             }
             IconButton(
-                onClick = { onTabBarSearchClicked() },
+                onClick = {
+                    isTopBarSearchSelected = !isTopBarSearchSelected
+                    onTabBarSearchClicked()
+                },
                 modifier = Modifier
                     .padding(end = 16.dp)
                     .size(30.dp)
@@ -164,7 +168,7 @@ fun AppBar(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = stringResource(R.string.search),
-                    tint = Color.White
+                    tint = if (isTopBarSearchSelected) Color.Gray else Color.White
                 )
             }
         }
