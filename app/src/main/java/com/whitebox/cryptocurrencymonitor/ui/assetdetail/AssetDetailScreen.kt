@@ -132,13 +132,13 @@ fun AssetDetailScreen(
     // show error message if there is an error while fetching asset details
     LaunchedEffect(assetDetailState.error) {
         if (assetDetailState.error != null) {
-            Toast.makeText(context, assetDetailState.error, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, assetDetailState.error, Toast.LENGTH_LONG).show()
         }
     }
     // show error message if there is an error while fetching exchange rate
     LaunchedEffect(exchangeRateState.error) {
         if (exchangeRateState.error != null) {
-            Toast.makeText(context, exchangeRateState.error, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, exchangeRateState.error, Toast.LENGTH_LONG).show()
         }
     }
 }

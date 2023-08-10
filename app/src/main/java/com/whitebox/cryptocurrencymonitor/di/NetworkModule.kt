@@ -7,6 +7,8 @@ import com.whitebox.cryptocurrencymonitor.BuildConfig
 import com.whitebox.cryptocurrencymonitor.CryptocurrencyApp
 import com.whitebox.cryptocurrencymonitor.common.Constants
 import com.whitebox.cryptocurrencymonitor.data.remote.AssetApi
+import com.whitebox.cryptocurrencymonitor.util.HttpErrorParser
+import com.whitebox.cryptocurrencymonitor.util.HttpErrorParserImpl
 import com.whitebox.cryptocurrencymonitor.util.NetworkConnectivityService
 import com.whitebox.cryptocurrencymonitor.util.NetworkConnectivityServiceImpl
 import dagger.Module
@@ -90,6 +92,12 @@ object NetworkModule {
         @ApplicationContext context: Context,
     ): NetworkConnectivityService {
         return NetworkConnectivityServiceImpl(context = context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideHttpErrorParser(gson: Gson): HttpErrorParser {
+        return HttpErrorParserImpl(gson = gson)
     }
 
 }

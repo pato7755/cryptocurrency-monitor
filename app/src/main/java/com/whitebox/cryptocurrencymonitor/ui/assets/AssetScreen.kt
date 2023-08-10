@@ -102,7 +102,7 @@ fun AssetScreen(
         // show error message if there is an error
         LaunchedEffect(assetState.error) {
             if (assetState.error != null) {
-                Toast.makeText(context, assetState.error, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, assetState.error, Toast.LENGTH_LONG).show()
             }
         }
     }

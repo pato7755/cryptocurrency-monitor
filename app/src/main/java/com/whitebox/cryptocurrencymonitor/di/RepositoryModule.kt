@@ -4,6 +4,7 @@ import com.whitebox.cryptocurrencymonitor.data.local.CryptocurrencyDao
 import com.whitebox.cryptocurrencymonitor.data.remote.AssetApi
 import com.whitebox.cryptocurrencymonitor.data.repository.CryptocurrencyRepositoryImpl
 import com.whitebox.cryptocurrencymonitor.domain.repository.CryptocurrencyRepository
+import com.whitebox.cryptocurrencymonitor.util.HttpErrorParser
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +19,8 @@ object RepositoryModule {
     @Singleton
     fun provideCryptocurrencyRepository(
         api: AssetApi,
-        dao: CryptocurrencyDao
-    ): CryptocurrencyRepository = CryptocurrencyRepositoryImpl(api, dao)
+        dao: CryptocurrencyDao,
+        httpErrorParser: HttpErrorParser
+    ): CryptocurrencyRepository = CryptocurrencyRepositoryImpl(api, dao, httpErrorParser)
 
 }
