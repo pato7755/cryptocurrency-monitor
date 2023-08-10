@@ -108,10 +108,12 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         }
 
         try {
-            // if fetch from cache fails, fetch from network
             asset?.let { emit(WorkResult.Success(asset)) }
-            asset = api.getAssetDetails(assetId).map { it.toDomainAsset() }.first()
-            emit(WorkResult.Success(asset))
+
+            val remoteAsset = api.getAssetDetails(assetId).map { it.toDomainAsset() }.first()
+            dao.upsertAssets(listOf(remoteAsset.toLocalAsset()))
+            val updatedLocalAsset = dao.getAssetById(assetId = assetId)
+            emit(WorkResult.Success(updatedLocalAsset?.toDomainAsset()))
         } catch (e: HttpException) {
             val errorResponse = httpErrorParser.parseResponseBody(
                 e.response()?.errorBody()?.string()
