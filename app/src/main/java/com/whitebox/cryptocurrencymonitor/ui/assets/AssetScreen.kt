@@ -49,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -258,12 +259,8 @@ fun AssetItem(
             .fillMaxWidth()
             .heightIn(min = 100.dp)
             .padding(8.dp)
+            .clip(shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 16.dp))
             .background(Color.LightGray)
-            .border(
-                shape = RoundedCornerShape(8.dp),
-                width = 0.dp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
     ) {
         Row(
             modifier = Modifier
