@@ -22,6 +22,15 @@ interface CryptocurrencyDao {
     fun upsertAssets(assets: List<AssetEntity>)
 
     /**
+     * Update assets with icon URLs
+     *
+     * @param assetId
+     * @param iconUrl
+     */
+    @Query("UPDATE Asset SET url = :iconUrl WHERE asset_id = :assetId")
+    fun updateAssetIconUrl(assetId: String, iconUrl: String)
+
+    /**
      * Update asset as favourite
      *
      * @param assetId

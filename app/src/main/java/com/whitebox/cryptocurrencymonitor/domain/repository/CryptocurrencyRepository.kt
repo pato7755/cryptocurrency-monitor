@@ -32,4 +32,6 @@ interface CryptocurrencyRepository {
 
     suspend fun searchAssets(searchString: String): Flow<WorkResult<List<Asset>>>
 
+    fun setAssetIconUrl(assetId: String, iconUrl: String): Boolean
+
 }

@@ -139,8 +139,9 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
 
     override suspend fun getAssetIcons(size: String): Flow<WorkResult<List<AssetIcon?>>> = flow {
         emit(WorkResult.Loading())
+        var remoteAssetIcons: List<AssetIcon> = emptyList()
         try {
-            val remoteAssetIcons = api.getAssetIcons(size).map { it.toDomainAssetIcon() }
+            remoteAssetIcons = api.getAssetIcons(size).map { it.toDomainAssetIcon() }
             emit(WorkResult.Success(remoteAssetIcons))
         } catch (e: HttpException) {
             val errorResponse = httpErrorParser.parseResponseBody(
@@ -160,6 +161,16 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
                     data = emptyList()
                 )
             )
+        }
+
+        /** save icon URLs to DB
+         * There are a few better approaches to this considering the huge number of records to update.
+         * 1. Use a background worker to update the records
+         * 2. Use a transaction to update the records
+         * 3. Use a batch update
+         */
+        remoteAssetIcons.forEach { assetIcon ->
+            setAssetIconUrl(assetId = assetIcon.assetId, iconUrl = assetIcon.url)
         }
     }
 
@@ -289,6 +300,16 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
                 )
             )
         }
+    }
+
+    override fun setAssetIconUrl(assetId: String, iconUrl: String): Boolean {
+        try {
+            dao.updateAssetIconUrl(assetId = assetId, iconUrl = iconUrl)
+            return true
+        } catch (e: IOException) {
+            Log.d("Set icon url - $assetId", e.message.toString())
+        }
+        return false
     }
 
 }
