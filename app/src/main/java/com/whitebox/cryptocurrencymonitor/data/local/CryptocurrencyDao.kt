@@ -27,8 +27,8 @@ interface CryptocurrencyDao {
      * @param assetId
      * @param iconUrl
      */
-    @Query("UPDATE Asset SET url = :iconUrl WHERE asset_id = :assetId")
-    fun updateAssetIconUrl(assetId: String, iconUrl: String)
+    @Query("UPDATE Asset SET url = CASE WHEN url IS NULL THEN :iconUrl ELSE url END WHERE asset_id = :assetId")
+    fun updateAssetIconUrlIfNull(assetId: String, iconUrl: String)
 
     /**
      * Update asset as favourite

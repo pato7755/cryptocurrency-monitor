@@ -304,7 +304,7 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
 
     override fun setAssetIconUrl(assetId: String, iconUrl: String): Boolean {
         try {
-            dao.updateAssetIconUrl(assetId = assetId, iconUrl = iconUrl)
+            dao.updateAssetIconUrlIfNull(assetId = assetId, iconUrl = iconUrl)
             return true
         } catch (e: IOException) {
             Timber.tag("Set icon url - $assetId").d(e.message.toString())

@@ -12,7 +12,7 @@ class FakeLocalDao : CryptocurrencyDao {
         this.assets.addAll(assets)
     }
 
-    override fun updateAssetIconUrl(assetId: String, iconUrl: String) {
+    override fun updateAssetIconUrlIfNull(assetId: String, iconUrl: String) {
         this.assets.find { it.assetId == assetId }?.let {
             val updatedAsset = it.copy(iconUrl = iconUrl)
             assets.remove(it)
