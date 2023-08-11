@@ -1,6 +1,6 @@
 package com.whitebox.cryptocurrencymonitor.util
 
-import android.util.Log
+import timber.log.Timber
 import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -22,10 +22,10 @@ object Utilities {
             val decimalFormat = DecimalFormat("#,##0.00")
             decimalFormat.format(this.toDouble())
         } catch (e: ArithmeticException) {
-            Log.e("Utilities", "formatToCurrencyAmount: ${e.message}")
+            Timber.tag("Utilities").e("formatToCurrencyAmount: %s", e.message)
             ""
         } catch (e: NumberFormatException) {
-            Log.e("Utilities", "formatToCurrencyAmount: ${e.message}")
+            Timber.tag("Utilities").e("formatToCurrencyAmount: %s", e.message)
             ""
         }
         return formattedAmount

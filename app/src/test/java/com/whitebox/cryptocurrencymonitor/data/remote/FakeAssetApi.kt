@@ -1,4 +1,4 @@
-package com.whitebox.cryptocurrencymonitor.data.local
+package com.whitebox.cryptocurrencymonitor.data.remote
 
 import com.whitebox.cryptocurrencymonitor.data.remote.AssetApi
 import com.whitebox.cryptocurrencymonitor.data.remote.dto.AssetDto

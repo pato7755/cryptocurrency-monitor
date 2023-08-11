@@ -1,7 +1,6 @@
 package com.whitebox.cryptocurrencymonitor.data.repository
 
 import android.database.SQLException
-import android.util.Log
 import com.whitebox.cryptocurrencymonitor.common.WorkResult
 import com.whitebox.cryptocurrencymonitor.data.local.CryptocurrencyDao
 import com.whitebox.cryptocurrencymonitor.data.local.entity.AssetEntity
@@ -18,8 +17,10 @@ import com.whitebox.cryptocurrencymonitor.domain.model.ExchangeRate
 import com.whitebox.cryptocurrencymonitor.domain.repository.CryptocurrencyRepository
 import com.whitebox.cryptocurrencymonitor.util.HttpErrorParser
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
+import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 
@@ -34,23 +35,22 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         var localAssets: List<AssetEntity> = emptyList()
         try {
             localAssets = dao.getAllAssets()
-
-            if (!fetchFromRemote) {
-                if (localAssets.isNotEmpty()) {
-                    emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
-                    return@flow
-                } else {
-                    emit(WorkResult.Error(
-                        message = "No data found",
-                        data = localAssets.map { it.toDomainAsset() }
-                    ))
-                    return@flow
-                }
-            }
         } catch (ex: SQLException) {
-            Log.e("CryptocurrencyRepositoryImpl", "getAssets: SQLException - ${ex.message}")
+            Timber.tag("CryptocurrencyRepositoryImpl").e("getAssets: SQLException - %s", ex.message)
         } catch (ex: Exception) {
-            Log.e("CryptocurrencyRepositoryImpl", "getAssets: Exception - ${ex.message}")
+            Timber.tag("CryptocurrencyRepositoryImpl").e("getAssets: Exception - %s", ex.message)
+        }
+
+        if (!fetchFromRemote) {
+            if (localAssets.isNotEmpty()) {
+                emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
+            } else {
+                emit(WorkResult.Error(
+                    message = "No data found",
+                    data = localAssets.map { it.toDomainAsset() }
+                ))
+            }
+            return@flow
         }
 
         try {
@@ -81,6 +81,53 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         }
     }
 
+    suspend fun getAssets1(fetchFromRemote: Boolean): Flow<WorkResult<List<Asset>>> = flow {
+        emit(WorkResult.Loading())
+
+        val localAssets = try {
+            dao.getAllAssets()
+        } catch (ex: Exception) {
+            Timber.tag("CryptocurrencyRepositoryImpl").e("getAssets: Exception - %s", ex.message)
+            emptyList() // Return an empty list in case of exception
+        }
+
+        if (!fetchFromRemote) {
+            if (localAssets.isNotEmpty()) {
+                emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
+            } else {
+                emit(WorkResult.Error("No data found", localAssets.map { it.toDomainAsset() }))
+            }
+            return@flow
+        }
+
+        try {
+            if (localAssets.isNotEmpty()) {
+                emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
+            }
+            val remoteAssets = api.getAssets().map { it.toDomainAsset() }
+            dao.upsertAssets(remoteAssets.map { it.toLocalAsset() })
+            val updatedLocalAssets = dao.getAllAssets()
+            emit(WorkResult.Success(updatedLocalAssets.map { it.toDomainAsset() }))
+
+        } catch (e: Exception) {
+            // Rethrow the exception for the .catch block
+            throw e
+        }
+    }.catch { exception ->
+        // Handle exceptions caught by .catch here
+        if (exception is HttpException) {
+            val errorResponse = httpErrorParser.parseResponseBody(
+                exception.response()?.errorBody()?.string()
+            )
+            emit(WorkResult.Error(errorResponse?.error ?: "Network error", emptyList()))
+        } else if (exception is IOException) {
+            emit(WorkResult.Error(exception.message ?: "I/O error", emptyList()))
+        } else {
+            emit(WorkResult.Error("Unknown error", emptyList()))
+        }
+    }
+
+
     override suspend fun getAsset(
         assetId: String,
         fetchFromRemote: Boolean
@@ -90,15 +137,15 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         try {
             asset = dao.getAssetById(assetId)?.toDomainAsset()
         } catch (ex: SQLException) {
-            Log.e("CryptocurrencyRepositoryImpl", "getAsset: SQLException - ${ex.message}")
+            Timber.tag("CryptocurrencyRepositoryImpl").e("getAsset: SQLException - %s", ex.message)
         } catch (ex: Exception) {
-            Log.e("CryptocurrencyRepositoryImpl", "getAsset: Exception - ${ex.message}")
+            Timber.tag("CryptocurrencyRepositoryImpl").e("getAsset: Exception - %s", ex.message)
         }
 
         if (!fetchFromRemote) {
             asset?.let {
                 emit(WorkResult.Success(asset))
-                Log.e("CryptocurrencyRepositoryImpl", "getAsset: $it")
+                Timber.tag("CryptocurrencyRepositoryImpl").e("getAsset: %s", it)
             } ?: emit(
                 WorkResult.Error(
                     message = "No data found"
@@ -126,7 +173,7 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
                 )
             )
         } catch (e: IOException) {
-            Log.e("CryptocurrencyRepositoryImpl", "io error: ${e.message}")
+            Timber.tag("CryptocurrencyRepositoryImpl").e("io error: %s", e.message)
             emit(
                 WorkResult.Error(
                     message = e.message ?: "An error occurred while fetching asset details",
@@ -197,9 +244,11 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
                 return@flow
             }
         } catch (ex: SQLException) {
-            Log.e("CryptocurrencyRepositoryImpl", "getExchangeRate: SQLException - ${ex.message}")
+            Timber.tag("CryptocurrencyRepositoryImpl")
+                .e("getExchangeRate: SQLException - %s", ex.message)
         } catch (ex: Exception) {
-            Log.e("CryptocurrencyRepositoryImpl", "getExchangeRate: Exception - ${ex.message}")
+            Timber.tag("CryptocurrencyRepositoryImpl")
+                .e("getExchangeRate: Exception - " + ex.message)
         }
 
         try {
@@ -245,12 +294,11 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             val localAssets = dao.getAllAssets().filter { it.isFavourite }
             emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
         } catch (ex: SQLException) {
-            Log.e(
-                "CryptocurrencyRepositoryImpl",
-                "getFavouriteAssets: SQLException - ${ex.message}"
-            )
+            Timber.tag("CryptocurrencyRepositoryImpl")
+                .e("getFavouriteAssets: SQLException - %s", ex.message)
         } catch (ex: Exception) {
-            Log.e("CryptocurrencyRepositoryImpl", "getFavouriteAssets: Exception - ${ex.message}")
+            Timber.tag("CryptocurrencyRepositoryImpl")
+                .e("getFavouriteAssets: Exception - %s", ex.message)
         }
 
     }
@@ -262,7 +310,7 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
                 return true
             }
         } catch (e: IOException) {
-            Log.d("Add favourite", e.message.toString())
+            Timber.tag("Add favourite").d(e.message.toString())
         }
         return false
     }
@@ -274,7 +322,7 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
                 return true
             }
         } catch (e: IOException) {
-            Log.d("Remove favourite", e.message.toString())
+            Timber.tag("Remove favourite").d(e.message.toString())
         }
         return false
     }
@@ -307,7 +355,7 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             dao.updateAssetIconUrl(assetId = assetId, iconUrl = iconUrl)
             return true
         } catch (e: IOException) {
-            Log.d("Set icon url - $assetId", e.message.toString())
+            Timber.tag("Set icon url - $assetId").d(e.message.toString())
         }
         return false
     }

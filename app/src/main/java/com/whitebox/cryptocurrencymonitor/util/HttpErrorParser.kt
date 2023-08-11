@@ -1,10 +1,10 @@
 package com.whitebox.cryptocurrencymonitor.util
 
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
+import timber.log.Timber
 import javax.inject.Inject
 
 interface HttpErrorParser {
@@ -23,10 +23,10 @@ class HttpErrorParserImpl @Inject constructor(
             val type = object : TypeToken<ErrorResponse>() {}.type
             gson.fromJson(errorBody, type)
         } catch (e: JsonParseException) {
-            Log.e("HttpErrorParser", "JsonParseException: ", e)
+            Timber.tag("HttpErrorParser").e(e, "JsonParseException: ")
             null
         } catch (e: JsonSyntaxException) {
-            Log.e("HttpErrorParser", "JsonSyntaxException: ", e)
+            Timber.tag("HttpErrorParser").e(e, "JsonSyntaxException: ")
             null
         }
 

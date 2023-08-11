@@ -1,6 +1,5 @@
-package com.whitebox.cryptocurrencymonitor.data.remote
+package com.whitebox.cryptocurrencymonitor.data.local
 
-import com.whitebox.cryptocurrencymonitor.data.local.CryptocurrencyDao
 import com.whitebox.cryptocurrencymonitor.data.local.entity.AssetEntity
 import com.whitebox.cryptocurrencymonitor.data.local.entity.ExchangeRateEntity
 
@@ -11,6 +10,14 @@ class FakeLocalDao : CryptocurrencyDao {
 
     override fun upsertAssets(assets: List<AssetEntity>) {
         this.assets.addAll(assets)
+    }
+
+    override fun updateAssetIconUrl(assetId: String, iconUrl: String) {
+        this.assets.find { it.assetId == assetId }?.let {
+            val updatedAsset = it.copy(iconUrl = iconUrl)
+            assets.remove(it)
+            assets.add(updatedAsset)
+        }
     }
 
     override fun addFavouriteAsset(assetId: String) {
