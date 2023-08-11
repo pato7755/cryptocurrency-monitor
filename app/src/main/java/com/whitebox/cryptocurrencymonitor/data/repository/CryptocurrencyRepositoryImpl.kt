@@ -4,7 +4,6 @@ import android.database.SQLException
 import com.whitebox.cryptocurrencymonitor.common.WorkResult
 import com.whitebox.cryptocurrencymonitor.data.local.CryptocurrencyDao
 import com.whitebox.cryptocurrencymonitor.data.local.entity.AssetEntity
-import com.whitebox.cryptocurrencymonitor.data.local.entity.ExchangeRateEntity
 import com.whitebox.cryptocurrencymonitor.data.mapper.toDomainAsset
 import com.whitebox.cryptocurrencymonitor.data.mapper.toDomainAssetIcon
 import com.whitebox.cryptocurrencymonitor.data.mapper.toDomainExchangeRate
@@ -40,6 +39,7 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             Timber.tag("CryptocurrencyRepositoryImpl").e("getAssets: Exception - %s", ex.message)
         }
 
+        // emit local result if available
         if (!fetchFromRemote) {
             if (localAssets.isNotEmpty()) {
                 emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
@@ -96,9 +96,10 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             Timber.tag("CryptocurrencyRepositoryImpl").e("getAsset: Exception - %s", ex.message)
         }
 
+        // emit local result if available
         if (!fetchFromRemote) {
             asset?.let {
-                emit(WorkResult.Success(asset))
+                emit(WorkResult.Success(it))
                 Timber.tag("CryptocurrencyRepositoryImpl").e("getAsset: %s", it)
             } ?: emit(
                 WorkResult.Error(
@@ -180,23 +181,9 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         fetchFromRemote: Boolean
     ): Flow<WorkResult<ExchangeRate>> = flow {
         emit(WorkResult.Loading())
-        var localExchangeRate: ExchangeRateEntity? = null
+        var localExchangeRate: ExchangeRate? = null
         try {
-            localExchangeRate = dao.getExchangeRate(assetId)
-
-            if (!fetchFromRemote) {
-                localExchangeRate?.let {
-                    emit(WorkResult.Success(it.toDomainExchangeRate()))
-                } ?: run {
-                    emit(
-                        WorkResult.Error(
-                            message = "An error occurred while fetching exchange rate",
-                            data = null
-                        )
-                    )
-                }
-                return@flow
-            }
+            localExchangeRate = dao.getExchangeRate(assetId)?.toDomainExchangeRate()
         } catch (ex: SQLException) {
             Timber.tag("CryptocurrencyRepositoryImpl")
                 .e("getExchangeRate: SQLException - %s", ex.message)
@@ -205,23 +192,33 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
                 .e("getExchangeRate: Exception - %s", ex.message)
         }
 
-        try {
+        // emit local result if available
+        if (!fetchFromRemote) {
             localExchangeRate?.let {
-                emit(WorkResult.Success(it.toDomainExchangeRate()))
-            }
+                emit(WorkResult.Success(it))
+            } ?: emit(
+                WorkResult.Error(
+                    message = "An error occurred while fetching exchange rate1",
+                    data = null
+                )
+            )
+            return@flow
+        }
+
+
+        try {
+            localExchangeRate?.let { emit(WorkResult.Success(it)) }
             val remoteExchangeRate = api.getExchangeRate(assetId).toDomainExchangeRate()
             dao.upsertExchangeRate(remoteExchangeRate.toLocalExchangeRate())
-            localExchangeRate = dao.getExchangeRate(assetId)
-            localExchangeRate?.let {
+            val updatedLocalExchangeRate = dao.getExchangeRate(assetIdBase = assetId)
+            updatedLocalExchangeRate?.let {
                 emit(WorkResult.Success(it.toDomainExchangeRate()))
-            } ?: run {
-                emit(
-                    WorkResult.Error(
-                        message = "An error occurred while fetching exchange rate",
-                        data = null
-                    )
+            } ?: emit(
+                WorkResult.Error(
+                    message = "An error occurred while fetching exchange rate2",
+                    data = null
                 )
-            }
+            )
         } catch (e: HttpException) {
             val errorResponse = httpErrorParser.parseResponseBody(
                 e.response()?.errorBody()?.string()
@@ -229,14 +226,14 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             emit(
                 WorkResult.Error(
                     message = errorResponse?.error ?: e.message(),
-                    data = localExchangeRate?.toDomainExchangeRate()
+                    data = localExchangeRate
                 )
             )
         } catch (e: IOException) {
             emit(
                 WorkResult.Error(
-                    message = e.message ?: "An error occurred while fetching exchange rate",
-                    data = localExchangeRate?.toDomainExchangeRate()
+                    message = e.message ?: "An error occurred while fetching exchange rate3",
+                    data = localExchangeRate
                 )
             )
         }
