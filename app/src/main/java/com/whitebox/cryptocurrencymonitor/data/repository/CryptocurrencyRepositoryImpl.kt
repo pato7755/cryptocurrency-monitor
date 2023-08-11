@@ -17,7 +17,6 @@ import com.whitebox.cryptocurrencymonitor.domain.model.ExchangeRate
 import com.whitebox.cryptocurrencymonitor.domain.repository.CryptocurrencyRepository
 import com.whitebox.cryptocurrencymonitor.util.HttpErrorParser
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import timber.log.Timber
@@ -80,53 +79,6 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             )
         }
     }
-
-    suspend fun getAssets1(fetchFromRemote: Boolean): Flow<WorkResult<List<Asset>>> = flow {
-        emit(WorkResult.Loading())
-
-        val localAssets = try {
-            dao.getAllAssets()
-        } catch (ex: Exception) {
-            Timber.tag("CryptocurrencyRepositoryImpl").e("getAssets: Exception - %s", ex.message)
-            emptyList() // Return an empty list in case of exception
-        }
-
-        if (!fetchFromRemote) {
-            if (localAssets.isNotEmpty()) {
-                emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
-            } else {
-                emit(WorkResult.Error("No data found", localAssets.map { it.toDomainAsset() }))
-            }
-            return@flow
-        }
-
-        try {
-            if (localAssets.isNotEmpty()) {
-                emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
-            }
-            val remoteAssets = api.getAssets().map { it.toDomainAsset() }
-            dao.upsertAssets(remoteAssets.map { it.toLocalAsset() })
-            val updatedLocalAssets = dao.getAllAssets()
-            emit(WorkResult.Success(updatedLocalAssets.map { it.toDomainAsset() }))
-
-        } catch (e: Exception) {
-            // Rethrow the exception for the .catch block
-            throw e
-        }
-    }.catch { exception ->
-        // Handle exceptions caught by .catch here
-        if (exception is HttpException) {
-            val errorResponse = httpErrorParser.parseResponseBody(
-                exception.response()?.errorBody()?.string()
-            )
-            emit(WorkResult.Error(errorResponse?.error ?: "Network error", emptyList()))
-        } else if (exception is IOException) {
-            emit(WorkResult.Error(exception.message ?: "I/O error", emptyList()))
-        } else {
-            emit(WorkResult.Error("Unknown error", emptyList()))
-        }
-    }
-
 
     override suspend fun getAsset(
         assetId: String,
