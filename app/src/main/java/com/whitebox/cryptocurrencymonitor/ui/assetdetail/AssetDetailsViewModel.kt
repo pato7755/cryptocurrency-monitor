@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,18 +45,18 @@ class AssetDetailsViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             // Observe network connectivity status
-            networkConnectivityService.networkStatus.distinctUntilChanged()
-                .collect { currentNetworkStatus ->
-                    if (currentNetworkStatus == NetworkStatus.Connected) {
-                        // fetch from remote
-                        getAssetDetails(assetId = assetId)
-                        getExchangeRate(assetId = assetId)
-                    } else {
-                        // fetch from local cache
-                        getAssetDetails(assetId = assetId, fetchFromRemote = false)
-                        getExchangeRate(assetId = assetId, fetchFromRemote = false)
-                    }
-                }
+            networkConnectivityService.networkStatus.distinctUntilChanged().onStart {
+                emit(NetworkStatus.Unknown)
+            }.collect { currentNetworkStatus ->
+                getAssetDetails(
+                    assetId = assetId,
+                    fetchFromRemote = (currentNetworkStatus == NetworkStatus.Connected)
+                )
+                getExchangeRate(
+                    assetId = assetId,
+                    fetchFromRemote = (currentNetworkStatus == NetworkStatus.Connected)
+                )
+            }
         }
     }
 

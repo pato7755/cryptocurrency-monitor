@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import javax.inject.Inject
 
 interface NetworkConnectivityService {
@@ -41,14 +42,17 @@ class NetworkConnectivityServiceImpl @Inject constructor(
     override val networkStatus: Flow<NetworkStatus> = callbackFlow {
         val connectivityCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
+                Timber.d("onAvailable: $network")
                 trySend(NetworkStatus.Connected)
             }
 
             override fun onUnavailable() {
+                Timber.d("onUnavailable")
                 trySend(NetworkStatus.Disconnected)
             }
 
             override fun onLost(network: Network) {
+                Timber.d("onUnavailable")
                 trySend(NetworkStatus.Disconnected)
             }
 

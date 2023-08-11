@@ -23,9 +23,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,25 +48,34 @@ class AssetsViewModel @Inject constructor(
     private val _searchBarState = MutableStateFlow(SearchBarState())
     val searchBarState = _searchBarState.asStateFlow()
 
-    var searchJob: Job? = null
+    private var searchJob: Job? = null
 
     init {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                Timber.d("checking networkStatus")
+                networkConnectivityService.networkStatus.onStart {
+                    emit(NetworkStatus.Unknown)
+                }.collect { status ->
+                    Timber.d("networkStatus: $status")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error checking network status")
+            }
+        }
         fetchData()
     }
 
     private fun fetchData() {
         viewModelScope.launch(Dispatchers.IO) {
             // Observe network connectivity status
-            networkConnectivityService.networkStatus.distinctUntilChanged()
-                .collect { currentNetworkStatus ->
-                    if (currentNetworkStatus == NetworkStatus.Connected) {
-                        // fetch from remote
-                        getAssetsAndIcons()
-                    } else if (currentNetworkStatus == NetworkStatus.Disconnected) {
-                        // fetch from local cache
-                        getAssetsAndIcons(fetchFromRemote = false)
-                    }
-                }
+            networkConnectivityService.networkStatus.distinctUntilChanged().onStart {
+                emit(NetworkStatus.Unknown)
+            }.collect { currentNetworkStatus ->
+                getAssetsAndIcons(
+                    fetchFromRemote = (currentNetworkStatus == NetworkStatus.Connected)
+                )
+            }
         }
     }
 
