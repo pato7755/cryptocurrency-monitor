@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,18 +50,6 @@ class AssetsViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                Timber.d("checking networkStatus")
-                networkConnectivityService.networkStatus.onStart {
-                    emit(NetworkStatus.Unknown)
-                }.collect { status ->
-                    Timber.d("networkStatus: $status")
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error checking network status")
-            }
-        }
         fetchData()
     }
 

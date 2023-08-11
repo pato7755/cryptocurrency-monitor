@@ -15,11 +15,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,20 +42,27 @@ class AssetDetailsViewModel @Inject constructor(
 
     private fun fetchData() {
         val assetId = savedStateHandle.get<String>("assetId") ?: ""
-
         viewModelScope.launch(Dispatchers.IO) {
             // Observe network connectivity status
-            networkConnectivityService.networkStatus.distinctUntilChanged().onStart {
+            networkConnectivityService.networkStatus.onStart {
                 emit(NetworkStatus.Unknown)
             }.collect { currentNetworkStatus ->
-                getAssetDetails(
-                    assetId = assetId,
-                    fetchFromRemote = (currentNetworkStatus == NetworkStatus.Connected)
-                )
-                getExchangeRate(
-                    assetId = assetId,
-                    fetchFromRemote = (currentNetworkStatus == NetworkStatus.Connected)
-                )
+                when (currentNetworkStatus) {
+                    NetworkStatus.Connected -> {
+                        getAssetDetails(assetId = assetId)
+                        getExchangeRate(assetId = assetId)
+                    }
+
+                    NetworkStatus.Disconnected -> {
+                        getAssetDetails(assetId = assetId, fetchFromRemote = false)
+                        getExchangeRate(assetId = assetId, fetchFromRemote = false)
+                    }
+
+                    NetworkStatus.Unknown -> {
+                        getAssetDetails(assetId = assetId, fetchFromRemote = false)
+                        getExchangeRate(assetId = assetId, fetchFromRemote = false)
+                    }
+                }
             }
         }
     }
