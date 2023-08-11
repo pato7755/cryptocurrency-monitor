@@ -246,7 +246,18 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
         emit(WorkResult.Loading())
         try {
             val localAssets = dao.getAllAssets().filter { it.isFavourite }
-            emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
+            localAssets.let {
+                if (it.isEmpty()) {
+                    emit(
+                        WorkResult.Error(
+                            message = "No favourites found",
+                            data = emptyList()
+                        )
+                    )
+                } else {
+                    emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
+                }
+            }
         } catch (ex: SQLException) {
             Timber.tag("CryptocurrencyRepositoryImpl")
                 .e("getFavouriteAssets: SQLException - %s", ex.message)
@@ -287,6 +298,18 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             val localAssets = dao.searchAssets(searchString)
                 .filter { it.typeIsCrypto == 1 }
                 .map { it.toDomainAsset() }
+            localAssets.let {
+                if (it.isEmpty()) {
+                    emit(
+                        WorkResult.Error(
+                            message = "No assets found",
+                            data = emptyList()
+                        )
+                    )
+                } else {
+                    emit(WorkResult.Success(it))
+                }
+            }
             emit(WorkResult.Success(localAssets))
         } catch (e: HttpException) {
             val errorResponse = httpErrorParser.parseResponseBody(
