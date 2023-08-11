@@ -2,6 +2,14 @@ package com.whitebox.cryptocurrencymonitor
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
 
 @HiltAndroidApp
-class CryptocurrencyApp: Application()
+class CryptocurrencyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
+    }
+}
