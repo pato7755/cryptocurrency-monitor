@@ -4,6 +4,7 @@ object Constants {
 
     const val BASE_URL = "https://rest.coinapi.io/v1/"
     const val EUR_ASSET_CODE = "EUR"
+    const val THREE_SECONDS = 3000L
 
     enum class ImageSize(val size: String) {
         SMALL("32"),

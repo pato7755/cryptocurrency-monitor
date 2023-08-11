@@ -3,6 +3,7 @@ package com.whitebox.cryptocurrencymonitor.ui.assets
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitebox.cryptocurrencymonitor.common.Constants
+import com.whitebox.cryptocurrencymonitor.common.Constants.THREE_SECONDS
 import com.whitebox.cryptocurrencymonitor.common.WorkResult
 import com.whitebox.cryptocurrencymonitor.domain.usecase.asset.AddFavouriteAssetUseCase
 import com.whitebox.cryptocurrencymonitor.domain.usecase.asset.GetAssetIconsUseCase
@@ -196,7 +197,7 @@ class AssetsViewModel @Inject constructor(
                 isLoading = true
             )
         }
-        delay(3000L)
+        delay(THREE_SECONDS)
 
         searchUseCase.invoke(_searchBarState.value.searchString).collectLatest { result ->
             when (result) {
