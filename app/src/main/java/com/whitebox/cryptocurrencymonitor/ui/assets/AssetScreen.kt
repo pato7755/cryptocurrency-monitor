@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,7 +43,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -116,8 +114,8 @@ fun AppBar(
     onTabBarSearchClicked: () -> Unit,
     viewModel: AssetsViewModel = hiltViewModel(),
 ) {
-    var isTopBarFavouriteSelected by remember { mutableStateOf(false) }
-    var isTopBarSearchSelected by remember { mutableStateOf(false) }
+    var isTopBarFavouriteSelected by rememberSaveable { mutableStateOf(false) }
+    var isTopBarSearchSelected by rememberSaveable { mutableStateOf(false) }
 
     TopAppBar(
         title = {
