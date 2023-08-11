@@ -56,7 +56,9 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
             if (localAssets.isNotEmpty()) {
                 emit(WorkResult.Success(localAssets.map { it.toDomainAsset() }))
             }
-            val remoteAssets = api.getAssets().map { it.toDomainAsset() }
+            val remoteAssets = api.getAssets()
+                .filter { it.typeIsCrypto == 1 }
+                .map { it.toDomainAsset() }
             dao.upsertAssets(remoteAssets.map { it.toLocalAsset() })
             val updatedLocalAssets = dao.getAllAssets()
             emit(WorkResult.Success(updatedLocalAssets.map { it.toDomainAsset() }))
@@ -200,7 +202,7 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
                 .e("getExchangeRate: SQLException - %s", ex.message)
         } catch (ex: Exception) {
             Timber.tag("CryptocurrencyRepositoryImpl")
-                .e("getExchangeRate: Exception - " + ex.message)
+                .e("getExchangeRate: Exception - %s", ex.message)
         }
 
         try {
@@ -282,7 +284,9 @@ class CryptocurrencyRepositoryImpl @Inject constructor(
     override suspend fun searchAssets(searchString: String): Flow<WorkResult<List<Asset>>> = flow {
         emit(WorkResult.Loading())
         try {
-            val localAssets = dao.searchAssets(searchString).map { it.toDomainAsset() }
+            val localAssets = dao.searchAssets(searchString)
+                .filter { it.typeIsCrypto == 1 }
+                .map { it.toDomainAsset() }
             emit(WorkResult.Success(localAssets))
         } catch (e: HttpException) {
             val errorResponse = httpErrorParser.parseResponseBody(
