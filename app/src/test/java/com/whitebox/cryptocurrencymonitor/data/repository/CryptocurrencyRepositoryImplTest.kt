@@ -1,18 +1,22 @@
 package com.whitebox.cryptocurrencymonitor.data.repository
 
 import com.google.common.truth.Truth.assertThat
+import com.google.gson.Gson
 import com.whitebox.cryptocurrencymonitor.common.WorkResult
-import com.whitebox.cryptocurrencymonitor.data.local.FakeAssetApi
+import com.whitebox.cryptocurrencymonitor.data.local.FakeLocalDao
 import com.whitebox.cryptocurrencymonitor.data.local.entity.AssetEntity
 import com.whitebox.cryptocurrencymonitor.data.mapper.toDomainAsset
 import com.whitebox.cryptocurrencymonitor.data.mapper.toLocalAsset
-import com.whitebox.cryptocurrencymonitor.data.remote.FakeLocalDao
+import com.whitebox.cryptocurrencymonitor.data.remote.FakeAssetApi
 import com.whitebox.cryptocurrencymonitor.domain.repository.CryptocurrencyRepository
+import com.whitebox.cryptocurrencymonitor.util.HttpErrorParser
+import com.whitebox.cryptocurrencymonitor.util.HttpErrorParserImpl
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 internal class CryptocurrencyRepositoryImplTest {
 
@@ -46,16 +50,21 @@ internal class CryptocurrencyRepositoryImplTest {
     private lateinit var remoteDataSource: FakeAssetApi
     private lateinit var localDataSource: FakeLocalDao
     private lateinit var repository: CryptocurrencyRepository
+    private lateinit var httpErrorParser: HttpErrorParser
+
+    private val gson: Gson = mock()
 
     @Before
     fun setUp() {
         remoteDataSource = FakeAssetApi()
         localDataSource = FakeLocalDao()
-        repository = CryptocurrencyRepositoryImpl(remoteDataSource, localDataSource)
+        httpErrorParser = HttpErrorParserImpl(gson = gson)
+        repository =
+            CryptocurrencyRepositoryImpl(remoteDataSource, localDataSource, httpErrorParser)
     }
 
     @Test
-    fun `getAssets should return local data with Loading result when available`() = runBlocking {
+    fun `getAssets should return Loading result first`() = runBlocking {
         // Given
         localDataSource.upsertAssets(assetEntity1)
 
@@ -66,12 +75,6 @@ internal class CryptocurrencyRepositoryImplTest {
         // Then
         // show loading
         assertThat(result is WorkResult.Loading).isTrue()
-
-        // show cached data
-        val secondResult = resultFlow.drop(1).first()
-
-        assertThat(assetEntity1.map { it.toDomainAsset() })
-            .isEqualTo((secondResult as WorkResult.Loading).data)
     }
 
     @Test
@@ -82,7 +85,7 @@ internal class CryptocurrencyRepositoryImplTest {
         // When
         val resultFlow = repository.getAssets(false)
         val result = resultFlow.first()
-        val secondResult = resultFlow.drop(2).first()
+        val secondResult = resultFlow.drop(1).first()
 
         // Then
         assertThat(result is WorkResult.Loading).isTrue()
@@ -96,7 +99,7 @@ internal class CryptocurrencyRepositoryImplTest {
 
         // When
         val resultFlow = repository.getAssets(true)
-        val secondResult = resultFlow.drop(2).first()
+        val secondResult = resultFlow.drop(1).first()
 
         // Then
         val updatedLocalAssets = remoteAssets.map { it.toLocalAsset().toDomainAsset() }
