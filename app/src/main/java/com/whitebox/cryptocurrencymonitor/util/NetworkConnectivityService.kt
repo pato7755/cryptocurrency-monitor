@@ -16,6 +16,7 @@ import javax.inject.Inject
 
 interface NetworkConnectivityService {
     val networkStatus: Flow<NetworkStatus>
+    fun isNetworkAvailable(): Boolean
 }
 
 /**
@@ -72,5 +73,12 @@ class NetworkConnectivityServiceImpl @Inject constructor(
     }
         .distinctUntilChanged()
         .flowOn(Dispatchers.IO)
+
+    override fun isNetworkAvailable(): Boolean {
+        val networkCapabilities = connectivityManager.activeNetwork ?: return false
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
 
 }

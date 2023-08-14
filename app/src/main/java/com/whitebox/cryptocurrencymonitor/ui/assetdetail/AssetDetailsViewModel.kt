@@ -15,11 +15,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,7 +44,7 @@ class AssetDetailsViewModel @Inject constructor(
         val assetId = savedStateHandle.get<String>("assetId") ?: ""
         viewModelScope.launch(Dispatchers.IO) {
             // Observe network connectivity status
-            networkConnectivityService.networkStatus.onStart {
+            networkConnectivityService.networkStatus.distinctUntilChanged().onStart {
                 emit(NetworkStatus.Unknown)
             }.collect { currentNetworkStatus ->
                 when (currentNetworkStatus) {
@@ -59,8 +59,10 @@ class AssetDetailsViewModel @Inject constructor(
                     }
 
                     NetworkStatus.Unknown -> {
-                        getAssetDetails(assetId = assetId, fetchFromRemote = false)
-                        getExchangeRate(assetId = assetId, fetchFromRemote = false)
+                        if (!networkConnectivityService.isNetworkAvailable()) {
+                            getAssetDetails(assetId = assetId, fetchFromRemote = false)
+                            getExchangeRate(assetId = assetId, fetchFromRemote = false)
+                        }
                     }
                 }
             }

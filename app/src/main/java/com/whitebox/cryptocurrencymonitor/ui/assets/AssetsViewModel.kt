@@ -59,9 +59,25 @@ class AssetsViewModel @Inject constructor(
             networkConnectivityService.networkStatus.distinctUntilChanged().onStart {
                 emit(NetworkStatus.Unknown)
             }.collect { currentNetworkStatus ->
-                getAssetsAndIcons(
-                    fetchFromRemote = (currentNetworkStatus == NetworkStatus.Connected)
-                )
+                when (currentNetworkStatus) {
+                    is NetworkStatus.Connected -> {
+                        // fetch assets and icons
+                        getAssetsAndIcons()
+                    }
+
+                    is NetworkStatus.Disconnected -> {
+                        // fetch assets from local db
+                        getAssetsAndIcons(fetchFromRemote = false)
+                    }
+
+                    is NetworkStatus.Unknown -> {
+                        // if network is not available at all, fetch assets from local db
+                        if (!networkConnectivityService.isNetworkAvailable()) {
+                            getAssetsAndIcons(fetchFromRemote = false)
+                        }
+                    }
+
+                }
             }
         }
     }
