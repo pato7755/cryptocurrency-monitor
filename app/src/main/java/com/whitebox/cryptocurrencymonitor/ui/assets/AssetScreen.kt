@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -80,7 +81,8 @@ fun AssetScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .background(colorResource(id = R.color.light_gray)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             SearchBar(visible = visible)
@@ -262,7 +264,7 @@ fun AssetItem(
             .heightIn(min = 100.dp)
             .padding(8.dp)
             .clip(shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 16.dp))
-            .background(Color.LightGray)
+            .background(Color.White)
     ) {
         Row(
             modifier = Modifier
